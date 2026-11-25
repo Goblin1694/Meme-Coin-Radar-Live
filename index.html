@@ -224,6 +224,23 @@
           </div>
         </div>
 
+        <!-- Live Real-Time Candlestick Chart -->
+        <div id="liveChartWrap" class="hidden bg-slate-50 border border-slate-200/80 rounded-xl p-2.5 space-y-2">
+          <div class="flex items-center justify-between px-1">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span class="text-xs font-bold text-slate-800">Chart Live Real-Time</span>
+            </div>
+            <a id="linkFullChart" href="https://dexscreener.com/" target="_blank" rel="noopener noreferrer"
+              class="text-[11px] font-semibold text-sky-600 hover:text-sky-700 flex items-center gap-1">
+              <span>Layar Penuh</span>
+              <i data-lucide="external-link" class="w-3 h-3"></i>
+            </a>
+          </div>
+          <iframe id="liveChartFrame" title="Live Meme Coin Chart" loading="lazy"
+            class="w-full h-[360px] sm:h-[430px] rounded-xl border border-slate-200 bg-white"></iframe>
+        </div>
+
         <!-- Status Prediksi AI Gemini -->
         <div id="geminiStatusBox" class="p-3.5 rounded-xl border bg-indigo-50/70 border-indigo-200 flex flex-wrap items-center justify-between gap-2">
           <div>
@@ -322,6 +339,11 @@
             <span>Lacak Smart Money (Arkham)</span>
             <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
           </a>
+          <button id="btnQuickPaperBuy" type="button"
+            class="col-span-2 sm:col-span-4 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition">
+            <i data-lucide="play-circle" class="w-4 h-4"></i>
+            <span>Buka di Paper Trading (Uji Beli Virtual Harga Live)</span>
+          </button>
         </div>
       </div>
 
@@ -660,6 +682,103 @@
       </div>
     </section>
 
+    <!-- VIEW 7: PAPER TRADING (LIVE PRICE VIRTUAL TRADING) -->
+    <section id="viewPaper" class="hidden space-y-5">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-sm">
+          <div class="text-[11px] text-slate-500">Saldo Virtual (USD)</div>
+          <div id="paperCashUsd" class="text-base sm:text-lg font-bold text-slate-900 mono mt-0.5">$1,000.00</div>
+        </div>
+        <div class="bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-sm">
+          <div class="text-[11px] text-slate-500">Total Ekuitas</div>
+          <div id="paperEquityUsd" class="text-base sm:text-lg font-bold text-indigo-700 mono mt-0.5">$1,000.00</div>
+        </div>
+        <div class="bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-sm">
+          <div class="text-[11px] text-slate-500">Unrealized PnL</div>
+          <div id="paperUnrealizedPnl" class="text-base sm:text-lg font-bold text-emerald-600 mono mt-0.5">$0.00</div>
+        </div>
+        <div class="bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-sm flex flex-col justify-between">
+          <div class="text-[11px] text-slate-500">Realized PnL</div>
+          <div class="flex items-center justify-between gap-2">
+            <span id="paperRealizedPnl" class="text-base font-bold text-emerald-600 mono">$0.00</span>
+            <button id="btnResetPaper" class="text-[10px] font-semibold px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700">Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Open Virtual Order Form -->
+      <div class="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 class="text-sm sm:text-base font-bold text-slate-900">Paper Trading (Harga Pasar Live + Virtual OCO)</h2>
+            <p class="text-xs text-slate-500">Uji strategi beli/jual meme coin tanpa risiko uang asli. Harga diperbarui otomatis mengikuti radar live.</p>
+          </div>
+          <button id="btnRefreshPaperPrices" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            <span>Update Harga</span>
+          </button>
+        </div>
+
+        <form id="formPaperOrder" class="grid grid-cols-1 sm:grid-cols-6 gap-2.5">
+          <input id="pQuery" type="text" placeholder="Ticker / CA Koin (mis. PEPE)" required
+            class="sm:col-span-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs mono text-slate-900" />
+          <input id="pAmountUsd" type="number" step="1" min="5" value="100" placeholder="Modal ($)" required
+            class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs mono text-slate-900" />
+          <input id="pTpPct" type="number" step="5" min="0" value="" placeholder="TP % (Opsional)"
+            class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs mono text-slate-900" />
+          <input id="pSlPct" type="number" step="5" min="0" value="" placeholder="SL % (Opsional)"
+            class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs mono text-slate-900" />
+          <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition">
+            Paper Buy
+          </button>
+        </form>
+      </div>
+
+      <!-- Open Positions -->
+      <div class="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+        <h3 class="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider">Posisi Paper Trading Aktif</h3>
+        <div class="overflow-x-auto border border-slate-200 rounded-xl">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 text-slate-500 uppercase text-[10px]">
+              <tr>
+                <th class="px-3 py-2">Koin</th>
+                <th class="px-3 py-2">Modal ($)</th>
+                <th class="px-3 py-2">Harga Masuk</th>
+                <th class="px-3 py-2">Harga Kini</th>
+                <th class="px-3 py-2">TP / SL</th>
+                <th class="px-3 py-2">PnL</th>
+                <th class="px-3 py-2 text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="paperOpenBody" class="divide-y divide-slate-100">
+              <tr><td colspan="7" class="px-4 py-5 text-center text-slate-400">Belum ada posisi paper trading aktif.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Closed History -->
+      <div class="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+        <h3 class="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider">Riwayat Paper Trading (Selesai)</h3>
+        <div class="overflow-x-auto border border-slate-200 rounded-xl">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 text-slate-500 uppercase text-[10px]">
+              <tr>
+                <th class="px-3 py-2">Waktu</th>
+                <th class="px-3 py-2">Koin</th>
+                <th class="px-3 py-2">Modal ($)</th>
+                <th class="px-3 py-2">Status</th>
+                <th class="px-3 py-2">Hasil PnL</th>
+              </tr>
+            </thead>
+            <tbody id="paperClosedBody" class="divide-y divide-slate-100">
+              <tr><td colspan="5" class="px-4 py-5 text-center text-slate-400">Belum ada riwayat penutupan posisi.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <!-- TRENDING POPUP MENU -->
@@ -711,7 +830,7 @@
 
   <!-- MOBILE-FRIENDLY BOTTOM NAVIGATION BAR -->
   <nav class="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 safe-bottom shadow-[0_-4px_20px_rgba(15,23,42,0.06)]">
-    <div class="max-w-2xl mx-auto grid grid-cols-6 h-16">
+    <div class="max-w-3xl mx-auto grid grid-cols-7 h-16">
       <button id="navTrending" class="bnav-btn flex flex-col items-center justify-center gap-0.5 text-emerald-600 font-semibold">
         <i data-lucide="flame" class="w-5 h-5"></i>
         <span class="text-[10px]">Trending</span>
@@ -724,9 +843,13 @@
         <i data-lucide="sliders-horizontal" class="w-5 h-5"></i>
         <span class="text-[10px]">Sizer</span>
       </button>
+      <button id="navPaper" class="bnav-btn flex flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-indigo-600">
+        <i data-lucide="play-circle" class="w-5 h-5"></i>
+        <span class="text-[9px] sm:text-[10px]">Paper</span>
+      </button>
       <button id="navJournal" class="bnav-btn flex flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-slate-700">
         <i data-lucide="book-open" class="w-5 h-5"></i>
-        <span class="text-[10px]">Jurnal</span>
+        <span class="text-[9px] sm:text-[10px]">Jurnal</span>
       </button>
       <button id="navTraktir" class="bnav-btn flex flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-rose-600">
         <i data-lucide="coffee" class="w-5 h-5"></i>
@@ -771,6 +894,17 @@
       const s = localStorage.getItem(SETTINGS_KEY);
       if (s) userSettings = { ...DEFAULT_SETTINGS, ...JSON.parse(s) };
     } catch (e) {}
+
+    const PAPER_KEY = 'meme_radar_paper_v1';
+    let paperState = { cashUsd: 1000, realizedUsd: 0, open: [], closed: [] };
+    try {
+      const pSaved = localStorage.getItem(PAPER_KEY);
+      if (pSaved) paperState = { cashUsd: 1000, realizedUsd: 0, open: [], closed: [], ...JSON.parse(pSaved) };
+    } catch (e) {}
+
+    function savePaper() {
+      try { localStorage.setItem(PAPER_KEY, JSON.stringify(paperState)); } catch (e) {}
+    }
 
     let trades = [];
     try {
@@ -891,6 +1025,7 @@
       document.getElementById('viewModelAudit').classList.toggle('hidden', viewType !== 'model');
       document.getElementById('viewSettings').classList.toggle('hidden', viewType !== 'settings');
       document.getElementById('viewTraktir').classList.toggle('hidden', viewType !== 'traktir');
+      document.getElementById('viewPaper').classList.toggle('hidden', viewType !== 'paper');
 
       if (viewType === 'audit') updateSizer();
       if (viewType === 'radar' && scrollTargetId) {
@@ -1203,6 +1338,7 @@
       if (logRows.length > 0) {
         document.getElementById('auditLogTableBody').innerHTML = logRows.slice(-20).reverse().join('');
       }
+      syncPaperWithLivePrices(priceMap);
     }
 
     // --- Live Data Fetcher (Batch DEX Screener) ---
@@ -1355,6 +1491,18 @@
       document.getElementById('mMcap').textContent = fmtUsd(t.mcap);
       document.getElementById('mLiq').textContent = fmtUsd(t.liq);
       document.getElementById('mVol').textContent = fmtUsd(t.vol);
+
+      const chartWrap = document.getElementById('liveChartWrap');
+      const chartFrame = document.getElementById('liveChartFrame');
+      const pairAddr = (t.pair && t.pair.pairAddress) ? t.pair.pairAddress : t.ca;
+      if (pairAddr && t.chainId) {
+        const embedUrl = `https://dexscreener.com/${encodeURIComponent(t.chainId)}/${encodeURIComponent(pairAddr)}?embed=1&theme=light&trades=0&info=0`;
+        if (chartFrame.src !== embedUrl) chartFrame.src = embedUrl;
+        document.getElementById('linkFullChart').href = `https://dexscreener.com/${encodeURIComponent(t.chainId)}/${encodeURIComponent(pairAddr)}`;
+        chartWrap.classList.remove('hidden');
+      } else {
+        chartWrap.classList.add('hidden');
+      }
 
       const vBox = document.getElementById('verdictBox');
       const vScore = document.getElementById('verdictScore');
@@ -1617,6 +1765,7 @@
       trades.unshift({ id: Date.now(), time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }), token, entrySol, exitSol, note });
       saveTrades();
       renderJournal();
+      renderPaper();
       e.target.reset();
       showToast('Trade disimpan!', 'success');
     });
@@ -1826,6 +1975,207 @@
     document.getElementById('navSettings').addEventListener('click', () => {
       toggleTrendingPopup(true);
       setActiveNav('navSettings', 'settings');
+    });
+
+    function syncPaperWithLivePrices(priceMap) {
+      let changed = false;
+      const remaining = [];
+      for (const pos of paperState.open) {
+        const liveP = priceMap && priceMap.get(pos.ca);
+        if (liveP && liveP > 0) pos.currentPrice = liveP;
+        const pct = pos.entryPrice > 0 ? ((pos.currentPrice - pos.entryPrice) / pos.entryPrice) * 100 : 0;
+        const hitTp = pos.tpPct > 0 && pct >= pos.tpPct;
+        const hitSl = pos.slPct > 0 && pct <= -pos.slPct;
+        if (hitTp || hitSl) {
+          const pnlUsd = pos.amountUsd * (pct / 100);
+          paperState.cashUsd += Math.max(0, pos.amountUsd + pnlUsd);
+          paperState.realizedUsd += pnlUsd;
+          paperState.closed.unshift({
+            time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+            symbol: pos.symbol,
+            amountUsd: pos.amountUsd,
+            reason: hitTp ? `Auto TP (+${pos.tpPct}%)` : `Auto SL (-${pos.slPct}%)`,
+            pnlUsd
+          });
+          changed = true;
+          showToast(`Paper ${pos.symbol} tertutup otomatis (${hitTp ? 'TP' : 'SL'})!`, hitTp ? 'success' : 'error');
+        } else {
+          remaining.push(pos);
+        }
+      }
+      if (changed) {
+        paperState.open = remaining;
+        savePaper();
+      }
+      renderPaper();
+    }
+
+    function renderPaper() {
+      let unrealized = 0;
+      let lockedCost = 0;
+      const openBody = document.getElementById('paperOpenBody');
+
+      if (paperState.open.length === 0) {
+        openBody.innerHTML = '<tr><td colspan="7" class="px-4 py-5 text-center text-slate-400">Belum ada posisi paper trading aktif.</td></tr>';
+      } else {
+        openBody.innerHTML = paperState.open.map(pos => {
+          const pct = pos.entryPrice > 0 ? ((pos.currentPrice - pos.entryPrice) / pos.entryPrice) * 100 : 0;
+          const pnlUsd = pos.amountUsd * (pct / 100);
+          unrealized += pnlUsd;
+          lockedCost += pos.amountUsd;
+          return `<tr>
+            <td class="px-3 py-2 font-bold text-slate-900">${pos.symbol} <span class="text-[9px] text-slate-400 uppercase">${pos.chainId}</span></td>
+            <td class="px-3 py-2 mono">$${pos.amountUsd.toFixed(2)}</td>
+            <td class="px-3 py-2 mono text-slate-600">${fmtUsd(pos.entryPrice)}</td>
+            <td class="px-3 py-2 mono text-slate-900">${fmtUsd(pos.currentPrice)}</td>
+            <td class="px-3 py-2 mono text-[11px]">${pos.tpPct > 0 ? `<span class="text-emerald-600">+${pos.tpPct}%</span>` : '<span class="text-slate-400">Off</span>'} / ${pos.slPct > 0 ? `<span class="text-rose-600">-${pos.slPct}%</span>` : '<span class="text-slate-400">Off</span>'}</td>
+            <td class="px-3 py-2 mono font-bold ${pnlUsd >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${pnlUsd >= 0 ? '+' : ''}$${pnlUsd.toFixed(2)} (${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%)</td>
+            <td class="px-3 py-2 text-right"><button data-paper-close="${pos.id}" class="btn-paper-close px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[10px] font-semibold">Jual</button></td>
+          </tr>`;
+        }).join('');
+      }
+
+      const closedBody = document.getElementById('paperClosedBody');
+      if (paperState.closed.length === 0) {
+        closedBody.innerHTML = '<tr><td colspan="5" class="px-4 py-5 text-center text-slate-400">Belum ada riwayat penutupan posisi.</td></tr>';
+      } else {
+        closedBody.innerHTML = paperState.closed.slice(0, 30).map(c => `<tr>
+          <td class="px-3 py-2 text-slate-500">${c.time}</td>
+          <td class="px-3 py-2 font-bold text-slate-900">${c.symbol}</td>
+          <td class="px-3 py-2 mono">$${c.amountUsd.toFixed(2)}</td>
+          <td class="px-3 py-2 text-[11px] font-semibold">${c.reason}</td>
+          <td class="px-3 py-2 mono font-bold ${c.pnlUsd >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${c.pnlUsd >= 0 ? '+' : ''}$${c.pnlUsd.toFixed(2)}</td>
+        </tr>`).join('');
+      }
+
+      const equity = paperState.cashUsd + lockedCost + unrealized;
+      document.getElementById('paperCashUsd').textContent = `$${paperState.cashUsd.toFixed(2)}`;
+      document.getElementById('paperEquityUsd').textContent = `$${equity.toFixed(2)}`;
+      const unEl = document.getElementById('paperUnrealizedPnl');
+      unEl.textContent = `${unrealized >= 0 ? '+' : ''}$${unrealized.toFixed(2)}`;
+      unEl.className = `text-base sm:text-lg font-bold mono mt-0.5 ${unrealized >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
+      const reEl = document.getElementById('paperRealizedPnl');
+      reEl.textContent = `${paperState.realizedUsd >= 0 ? '+' : ''}$${paperState.realizedUsd.toFixed(2)}`;
+      reEl.className = `text-base font-bold mono ${paperState.realizedUsd >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
+    }
+
+    async function refreshPaperPricesExplicit() {
+      if (paperState.open.length === 0) return;
+      const cas = [...new Set(paperState.open.map(p => p.ca))].slice(0, 30);
+      try {
+        const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${cas.join(',')}`);
+        if (res.ok) {
+          const json = await res.json();
+          const map = new Map();
+          for (const pair of (json.pairs || [])) {
+            const addr = pair.baseToken?.address;
+            if (addr && pair.priceUsd && !map.has(addr)) map.set(addr, Number(pair.priceUsd));
+          }
+          syncPaperWithLivePrices(map);
+          showToast('Harga posisi paper trading diperbarui!', 'success');
+        }
+      } catch (e) { showToast('Gagal memperbarui harga live.', 'error'); }
+    }
+
+    document.getElementById('formPaperOrder').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const q = document.getElementById('pQuery').value.trim();
+      const amt = Number(document.getElementById('pAmountUsd').value);
+      const tpRaw = Number(document.getElementById('pTpPct').value);
+      const slRaw = Number(document.getElementById('pSlPct').value);
+      const tp = tpRaw > 0 ? tpRaw : 0;
+      const sl = slRaw > 0 ? slRaw : 0;
+      if (!q || isNaN(amt) || amt <= 0) return;
+      if (amt > paperState.cashUsd) {
+        showToast('Saldo virtual tidak cukup!', 'error');
+        return;
+      }
+
+      try {
+        const isAddr = q.length >= 30 && !q.includes(' ');
+        const url = isAddr
+          ? `https://api.dexscreener.com/latest/dex/tokens/${encodeURIComponent(q)}`
+          : `https://api.dexscreener.com/latest/dex/search?q=${encodeURIComponent(q)}`;
+        const res = await fetch(url);
+        const json = res.ok ? await res.json() : {};
+        const pairs = json.pairs || [];
+        if (pairs.length === 0) {
+          showToast('Koin tidak ditemukan di DEX Screener.', 'error');
+          return;
+        }
+        const pair = pairs.sort((a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0))[0];
+        const price = Number(pair.priceUsd || 0);
+        if (price <= 0) { showToast('Harga koin tidak tersedia.', 'error'); return; }
+
+        paperState.cashUsd -= amt;
+        paperState.open.unshift({
+          id: Date.now(),
+          ca: pair.baseToken?.address || q,
+          symbol: pair.baseToken?.symbol || q.slice(0, 6),
+          chainId: (pair.chainId || 'solana').toLowerCase(),
+          amountUsd: amt,
+          entryPrice: price,
+          currentPrice: price,
+          tpPct: tp,
+          slPct: sl
+        });
+        savePaper();
+        renderPaper();
+        e.target.reset();
+        document.getElementById('pAmountUsd').value = '100';
+        document.getElementById('pTpPct').value = '';
+        document.getElementById('pSlPct').value = '';
+        showToast(`Paper Buy ${pair.baseToken?.symbol} berhasil di $${price}!`, 'success');
+      } catch (err) {
+        showToast('Gagal mengambil harga live koin.', 'error');
+      }
+    });
+
+    document.getElementById('paperOpenBody').addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-paper-close');
+      if (!btn) return;
+      const id = Number(btn.getAttribute('data-paper-close'));
+      const idx = paperState.open.findIndex(p => p.id === id);
+      if (idx === -1) return;
+      const pos = paperState.open[idx];
+      const pct = pos.entryPrice > 0 ? ((pos.currentPrice - pos.entryPrice) / pos.entryPrice) * 100 : 0;
+      const pnlUsd = pos.amountUsd * (pct / 100);
+      paperState.cashUsd += Math.max(0, pos.amountUsd + pnlUsd);
+      paperState.realizedUsd += pnlUsd;
+      paperState.closed.unshift({
+        time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+        symbol: pos.symbol,
+        amountUsd: pos.amountUsd,
+        reason: 'Jual Manual',
+        pnlUsd
+      });
+      paperState.open.splice(idx, 1);
+      savePaper();
+      renderPaper();
+      showToast(`Posisi ${pos.symbol} ditutup (${pnlUsd >= 0 ? '+' : ''}$${pnlUsd.toFixed(2)})`, pnlUsd >= 0 ? 'success' : 'error');
+    });
+
+    document.getElementById('btnResetPaper').addEventListener('click', () => {
+      paperState = { cashUsd: 1000, realizedUsd: 0, open: [], closed: [] };
+      savePaper();
+      renderPaper();
+      showToast('Saldo Paper Trading direset ke $1,000.', 'info');
+    });
+
+    document.getElementById('btnRefreshPaperPrices').addEventListener('click', refreshPaperPricesExplicit);
+
+    document.getElementById('btnQuickPaperBuy').addEventListener('click', () => {
+      if (currentToken && currentToken.ca) {
+        document.getElementById('pQuery').value = currentToken.ca;
+      }
+      setActiveNav('navPaper', 'paper');
+      renderPaper();
+    });
+
+    document.getElementById('navPaper').addEventListener('click', () => {
+      toggleTrendingPopup(true);
+      setActiveNav('navPaper', 'paper');
+      renderPaper();
     });
 
     window.addEventListener('DOMContentLoaded', () => {
