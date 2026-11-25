@@ -905,10 +905,6 @@
         <i data-lucide="activity" class="w-5 h-5"></i>
         <span class="text-[10px]">Audit</span>
       </button>
-      <button id="navAudit" class="hidden" aria-hidden="true">
-        <i data-lucide="sliders-horizontal" class="w-5 h-5"></i>
-        <span class="text-[10px]">Sizer</span>
-      </button>
       <button id="navPaper" class="bnav-btn flex flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-indigo-600">
         <i data-lucide="play-circle" class="w-5 h-5"></i>
         <span class="text-[10px]">Paper</span>
@@ -1822,10 +1818,6 @@
     document.getElementById('navModelAudit').addEventListener('click', () => {
       toggleTrendingPopup(true);
       setActiveNav('navModelAudit', 'model');
-    });
-    document.getElementById('navAudit').addEventListener('click', () => {
-      toggleTrendingPopup(true);
-      setActiveNav('navAudit', 'audit');
     });
     document.getElementById('navJournal').addEventListener('click', () => {
       toggleTrendingPopup(true);
