@@ -198,10 +198,45 @@
             </div>
           </div>
 
-          <div id="verdictBox" class="px-4 py-2 rounded-xl border bg-slate-50 border-slate-200 text-right">
-            <div class="text-[10px] uppercase tracking-wider text-slate-500">Skor Kredibilitas</div>
-            <div id="verdictScore" class="text-lg font-bold text-slate-800 mono">-- / 100</div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="btnToggleFavDetail" type="button" class="px-3 py-2 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold flex items-center gap-1.5 transition">
+              <i data-lucide="star" class="w-4 h-4"></i>
+              <span id="lblFavDetail">Tambah Favorit</span>
+            </button>
+            <div id="verdictBox" class="px-4 py-2 rounded-xl border bg-slate-50 border-slate-200 text-right">
+              <div class="text-[10px] uppercase tracking-wider text-slate-500">Skor Kredibilitas</div>
+              <div id="verdictScore" class="text-lg font-bold text-slate-800 mono">-- / 100</div>
+            </div>
           </div>
+        </div>
+
+        <!-- Notifikasi Chart Naik/Turun ke HP (Android & iOS) -->
+        <div class="bg-sky-50/70 border border-sky-200 rounded-xl p-3.5 space-y-2.5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <i data-lucide="bell-ring" class="w-4 h-4 text-sky-600"></i>
+              <span class="text-xs font-bold text-slate-900">Notifikasi HP (Android &amp; iOS) Saat Chart Naik/Turun</span>
+            </div>
+            <button id="btnReqNotifPerm" type="button" class="px-2.5 py-1 rounded-lg bg-white border border-sky-200 hover:bg-sky-100 text-sky-700 text-[11px] font-semibold">
+              Aktifkan Izin Notifikasi HP
+            </button>
+          </div>
+          <div class="flex flex-wrap items-center gap-2.5">
+            <label class="flex items-center gap-1.5 text-xs font-semibold text-slate-700 cursor-pointer">
+              <input id="chkCoinAlert" type="checkbox" class="accent-sky-600 w-4 h-4" />
+              <span>Pantau Koin Ini</span>
+            </label>
+            <div class="flex items-center gap-1.5">
+              <span class="text-xs text-slate-600">Picu jika berubah &ge;</span>
+              <input id="inpAlertPct" type="number" step="1" min="1" max="500" value="5"
+                class="w-16 bg-white border border-sky-200 rounded-lg px-2 py-1 text-xs mono text-slate-900" />
+              <span class="text-xs font-bold text-slate-700">%</span>
+            </div>
+            <button id="btnSaveCoinAlert" type="button" class="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition">
+              Simpan Alert
+            </button>
+          </div>
+          <p class="text-[11px] text-slate-500">Di Android Chrome notifikasi muncul langsung; di iOS (Safari) tambahkan situs ke <strong>Home Screen</strong> agar notifikasi aktif selama halaman terbuka.</p>
         </div>
 
         <!-- Metrics -->
@@ -710,13 +745,21 @@
       <div class="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 class="text-sm sm:text-base font-bold text-slate-900">Paper Trading (Harga Pasar Live + Virtual OCO)</h2>
-            <p class="text-xs text-slate-500">Uji strategi beli/jual meme coin tanpa risiko uang asli. Harga diperbarui otomatis mengikuti radar live.</p>
+            <div class="flex flex-wrap items-center gap-2">
+              <h2 class="text-sm sm:text-base font-bold text-slate-900">Paper Trading (Harga Pasar Live + Virtual OCO)</h2>
+              <span id="paperUidBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold mono bg-indigo-50 text-indigo-700 border border-indigo-200">ID: -</span>
+            </div>
+            <p class="text-xs text-slate-500">Data Paper Trading terisolasi khusus untuk perangkat &amp; sesi kamu sendiri (tidak terlihat oleh pengguna lain).</p>
           </div>
-          <button id="btnRefreshPaperPrices" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5">
-            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-            <span>Update Harga</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button id="btnNewPaperSession" class="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold">
+              Sesi Baru
+            </button>
+            <button id="btnRefreshPaperPrices" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              <span>Update Harga</span>
+            </button>
+          </div>
         </div>
 
         <form id="formPaperOrder" class="grid grid-cols-1 sm:grid-cols-6 gap-2.5">
@@ -779,6 +822,25 @@
       </div>
     </section>
 
+    <!-- VIEW 8: KOIN FAVORIT -->
+    <section id="viewFavorit" class="hidden space-y-5">
+      <div class="bg-white border border-slate-200/80 rounded-2xl shadow-sm overflow-hidden">
+        <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 bg-gradient-to-r from-amber-50/70 to-white">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">FAVORIT SAYA</span>
+              <h2 class="text-sm sm:text-base font-bold text-slate-900">Kumpulan Koin Favorit &amp; Alert Harga</h2>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">Koin yang kamu tandai ★ beserta status notifikasi naik/turunnya. Ketuk koin untuk melihat chart live.</p>
+          </div>
+          <span id="countFavorit" class="text-xs font-semibold mono text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">0 koin</span>
+        </div>
+        <div id="gridFavorit" class="divide-y divide-slate-100">
+          <div class="p-6 text-center text-xs text-slate-400">Belum ada koin favorit. Ketuk ikon ★ pada koin di Radar atau di profil koin.</div>
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <!-- TRENDING POPUP MENU -->
@@ -830,26 +892,30 @@
 
   <!-- MOBILE-FRIENDLY BOTTOM NAVIGATION BAR -->
   <nav class="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 safe-bottom shadow-[0_-4px_20px_rgba(15,23,42,0.06)]">
-    <div class="max-w-3xl mx-auto grid grid-cols-7 h-16">
+    <div class="max-w-3xl mx-auto grid grid-cols-6 h-16">
       <button id="navTrending" class="bnav-btn flex flex-col items-center justify-center gap-0.5 text-emerald-600 font-semibold">
         <i data-lucide="flame" class="w-5 h-5"></i>
         <span class="text-[10px]">Trending</span>
+      </button>
+      <button id="navFavorit" class="bnav-btn flex flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-amber-600">
+        <i data-lucide="star" class="w-5 h-5"></i>
+        <span class="text-[10px]">Favorit</span>
       </button>
       <button id="navModelAudit" class="bnav-btn flex flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-slate-700">
         <i data-lucide="activity" class="w-5 h-5"></i>
         <span class="text-[10px]">Audit</span>
       </button>
-      <button id="navAudit" class="bnav-btn flex flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-slate-700">
+      <button id="navAudit" class="hidden bnav-btn flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-slate-700">
         <i data-lucide="sliders-horizontal" class="w-5 h-5"></i>
         <span class="text-[10px]">Sizer</span>
       </button>
       <button id="navPaper" class="bnav-btn flex flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-indigo-600">
         <i data-lucide="play-circle" class="w-5 h-5"></i>
-        <span class="text-[9px] sm:text-[10px]">Paper</span>
+        <span class="text-[10px]">Paper</span>
       </button>
-      <button id="navJournal" class="bnav-btn flex flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-slate-700">
+      <button id="navJournal" class="hidden bnav-btn flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-slate-700">
         <i data-lucide="book-open" class="w-5 h-5"></i>
-        <span class="text-[9px] sm:text-[10px]">Jurnal</span>
+        <span class="text-[10px]">Jurnal</span>
       </button>
       <button id="navTraktir" class="bnav-btn flex flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-rose-600">
         <i data-lucide="coffee" class="w-5 h-5"></i>
@@ -863,7 +929,21 @@
   </nav>
 
   <script>
-    const STORAGE_KEY = 'meme_radar_light_v3';
+    const UID_KEY = 'meme_radar_uid_v1';
+    function getOrCreateUserId() {
+      try {
+        let uid = localStorage.getItem(UID_KEY);
+        if (!uid) {
+          uid = 'usr_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+          localStorage.setItem(UID_KEY, uid);
+        }
+        return uid;
+      } catch (e) {
+        return 'usr_session_' + Math.random().toString(36).slice(2, 8);
+      }
+    }
+    let ACTIVE_UID = getOrCreateUserId();
+    const STORAGE_KEY = `meme_radar_light_v3_${ACTIVE_UID}`;
     const EVM_CHAIN_IDS = { ethereum: '1', bsc: '56', polygon: '137', arbitrum: '42161', base: '8453' };
 
     let allLivePairs = [];
@@ -873,7 +953,7 @@
     let cooldownUntil = 0;
     const signalSnapshots = new Map(); // ca -> { priceUsd, dir: 'bull'|'bear', ts }
     let riskChartInstance = null;
-    const SETTINGS_KEY = 'meme_radar_settings_v1';
+    const SETTINGS_KEY = `meme_radar_settings_v1_${ACTIVE_UID}`;
     const DEFAULT_SETTINGS = {
       aiProvider: 'gemini-default',
       aiModel: '',
@@ -895,7 +975,21 @@
       if (s) userSettings = { ...DEFAULT_SETTINGS, ...JSON.parse(s) };
     } catch (e) {}
 
-    const PAPER_KEY = 'meme_radar_paper_v1';
+    const PAPER_KEY = `meme_radar_paper_v1_${ACTIVE_UID}`;
+    const FAV_KEY = `meme_radar_fav_v1_${ACTIVE_UID}`;
+    const ALERT_KEY = `meme_radar_alerts_v1_${ACTIVE_UID}`;
+
+    let favorites = []; // [{ ca, symbol, name, chainId, lastPrice }]
+    let priceAlerts = {}; // { [ca]: { symbol, chainId, enabled, pct, basePrice } }
+    try {
+      const fs = localStorage.getItem(FAV_KEY);
+      if (fs) favorites = JSON.parse(fs);
+      const als = localStorage.getItem(ALERT_KEY);
+      if (als) priceAlerts = JSON.parse(als);
+    } catch (e) {}
+
+    function saveFavs() { try { localStorage.setItem(FAV_KEY, JSON.stringify(favorites)); } catch (e) {} }
+    function saveAlerts() { try { localStorage.setItem(ALERT_KEY, JSON.stringify(priceAlerts)); } catch (e) {} }
     let paperState = { cashUsd: 1000, realizedUsd: 0, open: [], closed: [] };
     try {
       const pSaved = localStorage.getItem(PAPER_KEY);
@@ -903,7 +997,7 @@
     } catch (e) {}
 
     function savePaper() {
-      try { localStorage.setItem(PAPER_KEY, JSON.stringify(paperState)); } catch (e) {}
+      try { localStorage.setItem(`meme_radar_paper_v1_${ACTIVE_UID}`, JSON.stringify(paperState)); } catch (e) {}
     }
 
     let trades = [];
@@ -1026,6 +1120,7 @@
       document.getElementById('viewSettings').classList.toggle('hidden', viewType !== 'settings');
       document.getElementById('viewTraktir').classList.toggle('hidden', viewType !== 'traktir');
       document.getElementById('viewPaper').classList.toggle('hidden', viewType !== 'paper');
+      document.getElementById('viewFavorit').classList.toggle('hidden', viewType !== 'favorit');
 
       if (viewType === 'audit') updateSizer();
       if (viewType === 'radar' && scrollTargetId) {
@@ -1183,6 +1278,8 @@
           <div class="flex items-start justify-between sm:justify-start gap-3 min-w-0">
             <div class="min-w-0">
               <div class="flex items-center gap-1.5 flex-wrap">
+                <button type="button" data-fav-ca="${item.ca}" data-fav-sym="${item.symbol}" data-fav-chain="${item.chainId}" data-fav-price="${item.priceUsd}"
+                  class="btn-star-row text-sm leading-none ${favorites.some(f => f.ca === item.ca) ? 'text-amber-500' : 'text-slate-300 hover:text-amber-400'}" title="Favorit">★</button>
                 <span class="text-sm font-bold text-slate-900">${item.symbol}</span>
                 <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold border ${item.actionClass}">${item.actionSignal}</span>
                 <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-slate-100 text-slate-600 border border-slate-200">${item.chainId}</span>
@@ -1339,6 +1436,8 @@
         document.getElementById('auditLogTableBody').innerHTML = logRows.slice(-20).reverse().join('');
       }
       syncPaperWithLivePrices(priceMap);
+      checkPriceAlerts(priceMap);
+      renderFavorit();
     }
 
     // --- Live Data Fetcher (Batch DEX Screener) ---
@@ -1400,6 +1499,7 @@
 
         const nowStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         document.getElementById('liveLastUpdated').textContent = `Live: ${nowStr}`;
+        await pollWatchedCoinsExtra();
       } catch (e) {
         document.getElementById('liveLastUpdated').textContent = 'Limit / Jaringan';
       } finally {
@@ -1491,6 +1591,12 @@
       document.getElementById('mMcap').textContent = fmtUsd(t.mcap);
       document.getElementById('mLiq').textContent = fmtUsd(t.liq);
       document.getElementById('mVol').textContent = fmtUsd(t.vol);
+
+      const isFav = favorites.some(f => f.ca === t.ca);
+      document.getElementById('lblFavDetail').textContent = isFav ? 'Hapus Favorit ★' : 'Tambah Favorit';
+      const al = priceAlerts[t.ca];
+      document.getElementById('chkCoinAlert').checked = Boolean(al && al.enabled);
+      document.getElementById('inpAlertPct').value = (al && al.pct) ? al.pct : 5;
 
       const chartWrap = document.getElementById('liveChartWrap');
       const chartFrame = document.getElementById('liveChartFrame');
@@ -1731,14 +1837,48 @@
     document.getElementById('btnRefreshFeed').addEventListener('click', fetchLiveRadar);
     document.getElementById('filterChain').addEventListener('change', renderAllBoards);
 
-    ['gridBullish', 'gridNewCredible', 'gridBearish', 'gridScamRug'].forEach(id => {
+    ['gridBullish', 'gridNewCredible', 'gridBearish', 'gridScamRug', 'gridFavorit'].forEach(id => {
       document.getElementById(id).addEventListener('click', (e) => {
+        const star = e.target.closest('.btn-star-row');
+        if (star) {
+          e.stopPropagation();
+          const ca = star.getAttribute('data-fav-ca');
+          const idx = favorites.findIndex(f => f.ca === ca);
+          if (idx >= 0) {
+            favorites.splice(idx, 1);
+            showToast('Dihapus dari Favorit.', 'info');
+          } else {
+            favorites.unshift({
+              ca,
+              symbol: star.getAttribute('data-fav-sym'),
+              chainId: star.getAttribute('data-fav-chain'),
+              lastPrice: Number(star.getAttribute('data-fav-price') || 0)
+            });
+            showToast('Ditambahkan ke Favorit ★', 'success');
+          }
+          saveFavs();
+          renderAllBoards();
+          renderFavorit();
+          return;
+        }
+        const delFav = e.target.closest('.btn-del-fav');
+        if (delFav) {
+          e.stopPropagation();
+          const ca = delFav.getAttribute('data-del-fav');
+          favorites = favorites.filter(f => f.ca !== ca);
+          saveFavs();
+          renderFavorit();
+          renderAllBoards();
+          return;
+        }
         const row = e.target.closest('.coin-row');
         if (!row) return;
         const ca = row.getAttribute('data-ca');
         if (ca) scanLiveCa(ca);
       });
     });
+
+
 
     document.getElementById('btnCopyCa').addEventListener('click', () => {
       if (!currentToken) return;
@@ -1766,6 +1906,7 @@
       saveTrades();
       renderJournal();
       renderPaper();
+      renderFavorit();
       e.target.reset();
       showToast('Trade disimpan!', 'success');
     });
@@ -1782,7 +1923,10 @@
       if (autoRefreshTimer) { clearInterval(autoRefreshTimer); autoRefreshTimer = null; }
       if (document.getElementById('chkAutoRefresh').checked) {
         const ms = Math.max(2000, Number(document.getElementById('selRefreshRate').value) || 3000);
-        autoRefreshTimer = setInterval(fetchLiveRadar, ms);
+        autoRefreshTimer = setInterval(() => {
+          fetchLiveRadar();
+          if (paperState.open.length > 0) refreshPaperPricesExplicit(true);
+        }, ms);
       }
     }
     document.getElementById('chkAutoRefresh').addEventListener('change', setupAutoRefresh);
@@ -1977,6 +2121,106 @@
       setActiveNav('navSettings', 'settings');
     });
 
+    function sendMobileNotification(title, body) {
+      showToast(`${title}: ${body}`, 'info');
+      try {
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification(title, { body });
+        }
+      } catch (e) {}
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          const ctx = new AudioCtx();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = 880;
+          gain.gain.value = 0.08;
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.15);
+        }
+      } catch (e) {}
+    }
+
+    function checkPriceAlerts(priceMap) {
+      let updated = false;
+      for (const [ca, al] of Object.entries(priceAlerts)) {
+        if (!al || !al.enabled || !al.basePrice) continue;
+        const curPrice = priceMap.get(ca);
+        if (!curPrice || curPrice <= 0) continue;
+        const pctDiff = ((curPrice - al.basePrice) / al.basePrice) * 100;
+        if (Math.abs(pctDiff) >= al.pct) {
+          const dir = pctDiff >= 0 ? 'NAIK' : 'TURUN';
+          sendMobileNotification(
+            `${al.symbol} ${dir} ${pctDiff >= 0 ? '+' : ''}${pctDiff.toFixed(1)}%`,
+            `Harga kini ${fmtUsd(curPrice)} (Acuan: ${fmtUsd(al.basePrice)})`
+          );
+          al.basePrice = curPrice;
+          updated = true;
+        }
+      }
+      if (updated) saveAlerts();
+    }
+
+    function renderFavorit() {
+      const grid = document.getElementById('gridFavorit');
+      document.getElementById('countFavorit').textContent = `${favorites.length} koin`;
+      if (favorites.length === 0) {
+        grid.innerHTML = '<div class="p-6 text-center text-xs text-slate-400">Belum ada koin favorit. Ketuk ikon ★ pada koin di Radar atau di profil koin.</div>';
+        return;
+      }
+      const pairByCa = new Map(allLivePairs.map(p => [p.baseToken?.address, p]));
+      grid.innerHTML = favorites.map(f => {
+        const liveP = pairByCa.get(f.ca);
+        const price = liveP ? Number(liveP.priceUsd || f.lastPrice) : f.lastPrice;
+        const h1 = liveP ? Number(liveP.priceChange?.h1 || 0) : 0;
+        const al = priceAlerts[f.ca];
+        const alertBadge = (al && al.enabled)
+          ? `<span class="px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200 text-[10px] font-bold">🔔 Alert &ge;${al.pct}%</span>`
+          : '';
+        return `<div data-ca="${f.ca}" class="coin-row p-3.5 sm:px-5 hover:bg-slate-50 cursor-pointer flex items-center justify-between gap-3">
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-sm font-bold text-slate-900">${f.symbol}</span>
+              <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-slate-100 text-slate-600 border border-slate-200">${f.chainId}</span>
+              ${alertBadge}
+            </div>
+            <div class="text-[11px] mono text-slate-500 mt-0.5">Harga: ${fmtUsd(price)} · 1j: <span class="${h1 >= 0 ? 'text-emerald-600' : 'text-rose-600'} font-semibold">${h1 >= 0 ? '+' : ''}${h1.toFixed(1)}%</span></div>
+          </div>
+          <button type="button" data-del-fav="${f.ca}" class="btn-del-fav px-2.5 py-1 rounded-lg bg-rose-50 text-rose-600 text-[11px] font-semibold">Hapus</button>
+        </div>`;
+      }).join('');
+    }
+
+    async function pollWatchedCoinsExtra() {
+      const needed = new Set([
+        ...paperState.open.map(p => p.ca),
+        ...favorites.map(f => f.ca),
+        ...Object.entries(priceAlerts).filter(([, a]) => a && a.enabled).map(([ca]) => ca)
+      ]);
+      const present = new Set(allLivePairs.map(p => p.baseToken?.address));
+      const missing = [...needed].filter(ca => ca && !present.has(ca)).slice(0, 30);
+      if (missing.length === 0) return;
+      try {
+        const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${missing.join(',')}`);
+        if (res.ok) {
+          const json = await res.json();
+          const map = new Map();
+          for (const pair of (json.pairs || [])) {
+            const addr = pair.baseToken?.address;
+            if (addr && pair.priceUsd && !map.has(addr)) map.set(addr, Number(pair.priceUsd));
+          }
+          if (map.size > 0) {
+            syncPaperWithLivePrices(map);
+            checkPriceAlerts(map);
+          }
+        }
+      } catch (e) {}
+    }
+
     function syncPaperWithLivePrices(priceMap) {
       let changed = false;
       const remaining = [];
@@ -2011,6 +2255,8 @@
     }
 
     function renderPaper() {
+      const uidEl = document.getElementById('paperUidBadge');
+      if (uidEl) uidEl.textContent = `Sesi: ${ACTIVE_UID}`;
       let unrealized = 0;
       let lockedCost = 0;
       const openBody = document.getElementById('paperOpenBody');
@@ -2059,11 +2305,17 @@
       reEl.className = `text-base font-bold mono ${paperState.realizedUsd >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
     }
 
-    async function refreshPaperPricesExplicit() {
-      if (paperState.open.length === 0) return;
+    let isFetchingPaper = false;
+    async function refreshPaperPricesExplicit(silent = false) {
+      if (paperState.open.length === 0 || isFetchingPaper || Date.now() < cooldownUntil) return;
+      isFetchingPaper = true;
       const cas = [...new Set(paperState.open.map(p => p.ca))].slice(0, 30);
       try {
         const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${cas.join(',')}`);
+        if (res.status === 429) {
+          cooldownUntil = Date.now() + 15000;
+          return;
+        }
         if (res.ok) {
           const json = await res.json();
           const map = new Map();
@@ -2072,9 +2324,13 @@
             if (addr && pair.priceUsd && !map.has(addr)) map.set(addr, Number(pair.priceUsd));
           }
           syncPaperWithLivePrices(map);
-          showToast('Harga posisi paper trading diperbarui!', 'success');
+          if (!silent) showToast('Harga posisi paper trading diperbarui!', 'success');
         }
-      } catch (e) { showToast('Gagal memperbarui harga live.', 'error'); }
+      } catch (e) {
+        if (!silent) showToast('Gagal memperbarui harga live.', 'error');
+      } finally {
+        isFetchingPaper = false;
+      }
     }
 
     document.getElementById('formPaperOrder').addEventListener('submit', async (e) => {
@@ -2155,6 +2411,15 @@
       showToast(`Posisi ${pos.symbol} ditutup (${pnlUsd >= 0 ? '+' : ''}$${pnlUsd.toFixed(2)})`, pnlUsd >= 0 ? 'success' : 'error');
     });
 
+    document.getElementById('btnNewPaperSession').addEventListener('click', () => {
+      ACTIVE_UID = 'usr_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+      try { localStorage.setItem(UID_KEY, ACTIVE_UID); } catch (e) {}
+      paperState = { cashUsd: 1000, realizedUsd: 0, open: [], closed: [] };
+      try { localStorage.setItem(`meme_radar_paper_v1_${ACTIVE_UID}`, JSON.stringify(paperState)); } catch (e) {}
+      renderPaper();
+      showToast(`Sesi baru terisolasi dibuat (${ACTIVE_UID})!`, 'success');
+    });
+
     document.getElementById('btnResetPaper').addEventListener('click', () => {
       paperState = { cashUsd: 1000, realizedUsd: 0, open: [], closed: [] };
       savePaper();
@@ -2162,7 +2427,7 @@
       showToast('Saldo Paper Trading direset ke $1,000.', 'info');
     });
 
-    document.getElementById('btnRefreshPaperPrices').addEventListener('click', refreshPaperPricesExplicit);
+    document.getElementById('btnRefreshPaperPrices').addEventListener('click', () => refreshPaperPricesExplicit(false));
 
     document.getElementById('btnQuickPaperBuy').addEventListener('click', () => {
       if (currentToken && currentToken.ca) {
@@ -2170,6 +2435,54 @@
       }
       setActiveNav('navPaper', 'paper');
       renderPaper();
+    });
+
+    document.getElementById('navFavorit').addEventListener('click', () => {
+      toggleTrendingPopup(true);
+      setActiveNav('navFavorit', 'favorit');
+      renderFavorit();
+    });
+
+    document.getElementById('btnToggleFavDetail').addEventListener('click', () => {
+      if (!currentToken) return;
+      const idx = favorites.findIndex(f => f.ca === currentToken.ca);
+      if (idx >= 0) {
+        favorites.splice(idx, 1);
+        document.getElementById('lblFavDetail').textContent = 'Tambah Favorit';
+        showToast('Dihapus dari Favorit.', 'info');
+      } else {
+        favorites.unshift({ ca: currentToken.ca, symbol: currentToken.symbol, chainId: currentToken.chainId, lastPrice: currentToken.priceUsd });
+        document.getElementById('lblFavDetail').textContent = 'Hapus Favorit ★';
+        showToast(`${currentToken.symbol} ditambahkan ke Favorit!`, 'success');
+      }
+      saveFavs();
+      renderFavorit();
+      renderAllBoards();
+    });
+
+    document.getElementById('btnReqNotifPerm').addEventListener('click', async () => {
+      if (!('Notification' in window)) {
+        showToast('Browser ini belum mendukung Notification API; gunakan alert suara/layar.', 'info');
+        return;
+      }
+      const perm = await Notification.requestPermission();
+      showToast(perm === 'granted' ? 'Izin notifikasi HP aktif!' : 'Izin notifikasi ditolak browser.', perm === 'granted' ? 'success' : 'error');
+    });
+
+    document.getElementById('btnSaveCoinAlert').addEventListener('click', () => {
+      if (!currentToken) return;
+      const enabled = document.getElementById('chkCoinAlert').checked;
+      const pct = Math.max(1, Number(document.getElementById('inpAlertPct').value) || 5);
+      priceAlerts[currentToken.ca] = {
+        symbol: currentToken.symbol,
+        chainId: currentToken.chainId,
+        enabled,
+        pct,
+        basePrice: currentToken.priceUsd
+      };
+      saveAlerts();
+      renderFavorit();
+      showToast(enabled ? `Alert HP ${currentToken.symbol} aktif (±${pct}%)!` : `Alert ${currentToken.symbol} dimatikan.`, enabled ? 'success' : 'info');
     });
 
     document.getElementById('navPaper').addEventListener('click', () => {
