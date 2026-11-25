@@ -184,9 +184,11 @@
       <!-- Audit Result Card -->
       <div class="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
         <div class="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-4">
-          <div>
-            <div class="flex flex-wrap items-center gap-2">
-              <h3 id="resTokenName" class="text-lg font-bold text-slate-900">Pilih Koin dari Radar</h3>
+          <div class="flex items-center gap-3">
+            <div id="resTokenIcon" class="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-600 shrink-0 overflow-hidden">?</div>
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <h3 id="resTokenName" class="text-lg font-bold text-slate-900">Pilih Koin dari Radar</h3>
               <span id="resChainBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-slate-100 text-slate-700">MULTI-CHAIN</span>
               <span id="resDataMode" class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">LIVE</span>
             </div>
@@ -195,6 +197,7 @@
               <button id="btnCopyCa" class="text-slate-400 hover:text-slate-700" title="Salin CA">
                 <i data-lucide="copy" class="w-3.5 h-3.5"></i>
               </button>
+            </div>
             </div>
           </div>
 
@@ -259,18 +262,45 @@
           </div>
         </div>
 
+        <!-- Rincian Buyer & Seller Live (5m, 1j, 6j, 24j) -->
+        <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2.5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-600">Rincian Buyer &amp; Seller (Transaksi Live)</h4>
+            <span id="bsSummary1h" class="text-xs font-bold mono text-slate-800">-</span>
+          </div>
+          <div class="w-full h-2.5 rounded-full bg-rose-200 overflow-hidden flex">
+            <div id="bsBarBuy" class="h-full bg-emerald-500 transition-all duration-300" style="width: 50%"></div>
+          </div>
+          <div id="bsBreakdownGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+            <div class="bg-white border border-slate-200 rounded-lg p-2"><div class="text-[10px] text-slate-400">5 Menit</div><div class="mono font-semibold text-slate-700">-</div></div>
+            <div class="bg-white border border-slate-200 rounded-lg p-2"><div class="text-[10px] text-slate-400">1 Jam</div><div class="mono font-semibold text-slate-700">-</div></div>
+            <div class="bg-white border border-slate-200 rounded-lg p-2"><div class="text-[10px] text-slate-400">6 Jam</div><div class="mono font-semibold text-slate-700">-</div></div>
+            <div class="bg-white border border-slate-200 rounded-lg p-2"><div class="text-[10px] text-slate-400">24 Jam</div><div class="mono font-semibold text-slate-700">-</div></div>
+          </div>
+        </div>
+
         <!-- Live Real-Time Candlestick Chart -->
         <div id="liveChartWrap" class="hidden bg-slate-50 border border-slate-200/80 rounded-xl p-2.5 space-y-2">
-          <div class="flex items-center justify-between px-1">
+          <div class="flex flex-wrap items-center justify-between gap-2 px-1">
             <div class="flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span class="text-xs font-bold text-slate-800">Chart Live Real-Time</span>
+              <span class="text-xs font-bold text-slate-800">Chart Live &amp; Transaksi Real-Time</span>
             </div>
-            <a id="linkFullChart" href="https://dexscreener.com/" target="_blank" rel="noopener noreferrer"
-              class="text-[11px] font-semibold text-sky-600 hover:text-sky-700 flex items-center gap-1">
-              <span>Layar Penuh</span>
-              <i data-lucide="external-link" class="w-3 h-3"></i>
-            </a>
+            <div class="flex flex-wrap items-center gap-2">
+              <button id="btnToggleTrades" type="button" class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-[11px] font-semibold text-slate-700">
+                Tampilkan Live Trades
+              </button>
+              <a id="linkGmgnLiveChat" href="https://gmgn.ai/?chain=sol" target="_blank" rel="noopener noreferrer"
+                class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-[11px] font-semibold text-white flex items-center gap-1">
+                <span>Live Chat GMGN.AI</span>
+                <i data-lucide="external-link" class="w-3 h-3"></i>
+              </a>
+              <a id="linkFullChart" href="https://dexscreener.com/" target="_blank" rel="noopener noreferrer"
+                class="text-[11px] font-semibold text-sky-600 hover:text-sky-700 flex items-center gap-1">
+                <span>Layar Penuh</span>
+                <i data-lucide="external-link" class="w-3 h-3"></i>
+              </a>
+            </div>
           </div>
           <iframe id="liveChartFrame" title="Live Meme Coin Chart" loading="lazy"
             class="w-full h-[360px] sm:h-[430px] rounded-xl border border-slate-200 bg-white"></iframe>
@@ -943,6 +973,7 @@
     const EVM_CHAIN_IDS = { ethereum: '1', bsc: '56', polygon: '137', arbitrum: '42161', base: '8453' };
 
     let allLivePairs = [];
+    let showLiveTrades = false;
     let currentToken = null;
     let autoRefreshTimer = null;
     let isFetchingRadar = false;
@@ -1127,6 +1158,17 @@
       }
     }
 
+    function coinIconHtml(iconUrl, symbol, sizeClass = 'w-8 h-8') {
+      const monoTxt = (symbol || 'TK').replace(/[^a-zA-Z0-9]/g, '').slice(0, 2).toUpperCase() || 'TK';
+      if (iconUrl && iconUrl.startsWith('http')) {
+        return `<div class="${sizeClass} relative shrink-0">
+          <img src="${iconUrl}" alt="${monoTxt}" class="${sizeClass} rounded-full object-cover border border-slate-200 bg-slate-100" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+          <div style="display:none" class="${sizeClass} rounded-full bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-200 items-center justify-center text-[10px] font-bold text-slate-600">${monoTxt}</div>
+        </div>`;
+      }
+      return `<div class="${sizeClass} rounded-full bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600 shrink-0">${monoTxt}</div>`;
+    }
+
     // --- Algorithmic Live Scoring (Timeframes: Menit, Jam, Hari, Bulan) ---
     function scorePair(p) {
       const m5 = Number(p.priceChange?.m5 || 0);
@@ -1242,11 +1284,13 @@
         signalDirClass = 'text-rose-700';
       }
 
+      const iconUrl = (p.info && p.info.imageUrl) ? p.info.imageUrl : '';
       return {
         pair: p,
         ca: p.baseToken?.address || '',
         symbol: p.baseToken?.symbol || 'TOKEN',
         name: p.baseToken?.name || '',
+        iconUrl,
         chainId: (p.chainId || 'solana').toLowerCase(),
         priceUsd: Number(p.priceUsd || 0),
         mcap, liq, vol, buys, sells,
@@ -1271,7 +1315,8 @@
 
       return `
         <div data-ca="${item.ca}" class="coin-row p-3.5 sm:px-5 hover:bg-slate-50/90 cursor-pointer transition flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div class="flex items-start justify-between sm:justify-start gap-3 min-w-0">
+          <div class="flex items-start gap-3 min-w-0">
+            ${coinIconHtml(item.iconUrl, item.symbol, 'w-9 h-9 mt-0.5')}
             <div class="min-w-0">
               <div class="flex items-center gap-1.5 flex-wrap">
                 <button type="button" data-fav-ca="${item.ca}" data-fav-sym="${item.symbol}" data-fav-chain="${item.chainId}" data-fav-price="${item.priceUsd}"
@@ -1288,7 +1333,7 @@
                 <span>Harga: ${fmtUsd(item.priceUsd)}</span>
                 <span>Liq: ${fmtUsd(item.liq)} (${item.liqMcapRatio}% MCap)</span>
                 <span>Vol 1j: ${fmtUsd(item.vol)}</span>
-                <span>Beli ${item.buyRatio}% / Jual ${item.sellRatio}%</span>
+                <span>Buyer ${item.buys} (${item.buyRatio}%) / Seller ${item.sells} (${item.sellRatio}%)</span>
                 <span>5m: ${item.m5 >= 0 ? '+' : ''}${item.m5}% · 1j: ${item.h1 >= 0 ? '+' : ''}${item.h1}%</span>
               </div>
               <div class="text-[11px] mt-1 font-medium ${item.actionSignal === 'Jangan Beli' ? 'text-rose-600' : (item.actionSignal === 'Tidak Yakin' ? 'text-amber-700' : 'text-emerald-700')}">${item.actionReason}</div>
@@ -1431,7 +1476,8 @@
       if (logRows.length > 0) {
         document.getElementById('auditLogTableBody').innerHTML = logRows.slice(-20).reverse().join('');
       }
-      syncPaperWithLivePrices(priceMap);
+      const metaMap = new Map(filtered.map(x => [x.ca, { m5: x.m5, buyRatio: x.buyRatio }]));
+      syncPaperWithLivePrices(priceMap, metaMap);
       checkPriceAlerts(priceMap);
       renderFavorit();
     }
@@ -1463,7 +1509,8 @@
           if (Array.isArray(b)) addresses.push(...b.map(x => x.tokenAddress).filter(Boolean));
         }
 
-        const uniqueAddrs = [...new Set(addresses)].slice(0, 60);
+        const paperAddrs = (paperState.open || []).map(p => p.ca).filter(Boolean);
+        const uniqueAddrs = [...new Set([...paperAddrs, ...addresses])].slice(0, 60);
         const batch1 = uniqueAddrs.slice(0, 30);
         const batch2 = uniqueAddrs.slice(30, 60);
 
@@ -1492,6 +1539,28 @@
 
         allLivePairs = Array.from(bestPairByToken.values());
         renderAllBoards();
+
+        // Auto-fetch live prices for any open Paper Trading positions outside the 60-coin radar feed
+        if (paperState.open.length > 0) {
+          const radarSet = new Set(allLivePairs.map(p => p.baseToken?.address).filter(Boolean));
+          const missingCas = [...new Set(paperState.open.map(pos => pos.ca).filter(ca => ca && !radarSet.has(ca)))].slice(0, 30);
+          if (missingCas.length > 0) {
+            try {
+              const pRes = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${missingCas.join(',')}`);
+              if (pRes.ok) {
+                const pJson = await pRes.json();
+                const extraMap = new Map();
+                for (const pair of (pJson.pairs || [])) {
+                  const addr = pair.baseToken?.address;
+                  if (addr && pair.priceUsd && !extraMap.has(addr)) {
+                    extraMap.set(addr, Number(pair.priceUsd));
+                  }
+                }
+                if (extraMap.size > 0) syncPaperWithLivePrices(extraMap);
+              }
+            } catch (e) {}
+          }
+        }
 
         const nowStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         document.getElementById('liveLastUpdated').textContent = `Live: ${nowStr}`;
@@ -1580,6 +1649,7 @@
     }
 
     function renderAuditDetail(t) {
+      document.getElementById('resTokenIcon').outerHTML = coinIconHtml(t.iconUrl, t.symbol, 'w-10 h-10').replace('<div ', '<div id="resTokenIcon" ');
       document.getElementById('resTokenName').textContent = `${t.symbol} (${t.name})`;
       document.getElementById('resChainBadge').textContent = t.chainId.toUpperCase();
       document.getElementById('resCaDisplay').textContent = t.ca;
@@ -1587,6 +1657,21 @@
       document.getElementById('mMcap').textContent = fmtUsd(t.mcap);
       document.getElementById('mLiq').textContent = fmtUsd(t.liq);
       document.getElementById('mVol').textContent = fmtUsd(t.vol);
+
+      document.getElementById('bsSummary1h').innerHTML = `<span class="text-emerald-600">Buyer: ${t.buys} (${t.buyRatio}%)</span> · <span class="text-rose-600">Seller: ${t.sells} (${t.sellRatio}%)</span>`;
+      document.getElementById('bsBarBuy').style.width = `${t.buyRatio}%`;
+      const txns = (t.pair && t.pair.txns) || {};
+      const tfLabels = [['m5', '5 Menit'], ['h1', '1 Jam'], ['h6', '6 Jam'], ['h24', '24 Jam']];
+      document.getElementById('bsBreakdownGrid').innerHTML = tfLabels.map(([k, lbl]) => {
+        const b = Number((txns[k] && txns[k].buys) || 0);
+        const s = Number((txns[k] && txns[k].sells) || 0);
+        const tot = b + s;
+        const bp = tot > 0 ? Math.round((b / tot) * 100) : 50;
+        return `<div class="bg-white border border-slate-200 rounded-lg p-2">
+          <div class="text-[10px] text-slate-400">${lbl}</div>
+          <div class="mono text-[11px] font-bold mt-0.5"><span class="text-emerald-600">${b} B</span> / <span class="text-rose-600">${s} S</span> <span class="text-slate-400">(${bp}%)</span></div>
+        </div>`;
+      }).join('');
 
       const isFav = favorites.some(f => f.ca === t.ca);
       document.getElementById('lblFavDetail').textContent = isFav ? 'Hapus Favorit ★' : 'Tambah Favorit';
@@ -1597,8 +1682,11 @@
       const chartWrap = document.getElementById('liveChartWrap');
       const chartFrame = document.getElementById('liveChartFrame');
       const pairAddr = (t.pair && t.pair.pairAddress) ? t.pair.pairAddress : t.ca;
+      const gmgnChainMap = { solana: 'sol', base: 'base', bsc: 'bsc', ethereum: 'eth' };
+      document.getElementById('linkGmgnLiveChat').href = `https://gmgn.ai/${gmgnChainMap[t.chainId] || 'sol'}/token/${encodeURIComponent(t.ca)}`;
       if (pairAddr && t.chainId) {
-        const embedUrl = `https://dexscreener.com/${encodeURIComponent(t.chainId)}/${encodeURIComponent(pairAddr)}?embed=1&theme=light&trades=0&info=0`;
+        const tradesFlag = showLiveTrades ? '1' : '0';
+        const embedUrl = `https://dexscreener.com/${encodeURIComponent(t.chainId)}/${encodeURIComponent(pairAddr)}?embed=1&theme=light&trades=${tradesFlag}&info=0`;
         if (chartFrame.src !== embedUrl) chartFrame.src = embedUrl;
         document.getElementById('linkFullChart').href = `https://dexscreener.com/${encodeURIComponent(t.chainId)}/${encodeURIComponent(pairAddr)}`;
         chartWrap.classList.remove('hidden');
@@ -2213,12 +2301,17 @@
       } catch (e) {}
     }
 
-    function syncPaperWithLivePrices(priceMap) {
+    function syncPaperWithLivePrices(priceMap, metaMap = null) {
       let changed = false;
       const remaining = [];
       for (const pos of paperState.open) {
         const liveP = priceMap && priceMap.get(pos.ca);
         if (liveP && liveP > 0) pos.currentPrice = liveP;
+        const meta = metaMap && metaMap.get(pos.ca);
+        if (meta) {
+          pos.m5 = meta.m5;
+          pos.buyRatio = meta.buyRatio;
+        }
         const pct = pos.entryPrice > 0 ? ((pos.currentPrice - pos.entryPrice) / pos.entryPrice) * 100 : 0;
         const hitTp = pos.tpPct > 0 && pct >= pos.tpPct;
         const hitSl = pos.slPct > 0 && pct <= -pos.slPct;
@@ -2228,7 +2321,9 @@
           paperState.realizedUsd += pnlUsd;
           paperState.closed.unshift({
             time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+            ca: pos.ca,
             symbol: pos.symbol,
+            iconUrl: pos.iconUrl || '',
             amountUsd: pos.amountUsd,
             reason: hitTp ? `Auto TP (+${pos.tpPct}%)` : `Auto SL (-${pos.slPct}%)`,
             pnlUsd
@@ -2261,14 +2356,49 @@
           const pnlUsd = pos.amountUsd * (pct / 100);
           unrealized += pnlUsd;
           lockedCost += pos.amountUsd;
+
+          // Build 5m to 60m (12 steps) damped live momentum prediction
+          const m5 = Number(pos.m5 || 0);
+          const br = Number(pos.buyRatio ?? 50);
+          const base5m = Math.max(-10, Math.min(10, (m5 * 0.5) + ((br - 50) * 0.12)));
+          const steps = [];
+          for (let step = 1; step <= 12; step++) {
+            const mins = step * 5;
+            const projPct = base5m * Math.pow(step, 0.72);
+            const projPrice = pos.currentPrice * (1 + (projPct / 100));
+            const isUp = projPct >= 0;
+            steps.push(`
+              <div class="rounded-lg border px-1.5 py-1 text-center ${isUp ? 'bg-emerald-50/70 border-emerald-200/80' : 'bg-rose-50/70 border-rose-200/80'}">
+                <div class="text-[9px] font-bold text-slate-500">${mins}m</div>
+                <div class="text-[10px] font-bold mono ${isUp ? 'text-emerald-700' : 'text-rose-700'}">${isUp ? '+' : ''}${projPct.toFixed(1)}%</div>
+                <div class="text-[9px] mono text-slate-500 truncate">${fmtUsd(projPrice)}</div>
+              </div>
+            `);
+          }
+
+          const elapsedMins = Math.max(0, Math.floor((Date.now() - (pos.boughtAt || pos.id || Date.now())) / 60000));
+          const durText = elapsedMins < 60 ? `${elapsedMins} mnt` : `${Math.floor(elapsedMins / 60)}j ${elapsedMins % 60}m`;
+          const bTp = pos.estBuyerTp || (pos.entryPrice * 1.2);
+          const sSl = pos.estSellerSl || (pos.entryPrice * 0.85);
           return `<tr>
-            <td class="px-3 py-2 font-bold text-slate-900">${pos.symbol} <span class="text-[9px] text-slate-400 uppercase">${pos.chainId}</span></td>
+            <td class="px-3 py-2 font-bold text-slate-900"><button type="button" data-paper-ca="${pos.ca}" class="btn-paper-profile flex items-center gap-2 text-left text-indigo-700 hover:underline">${coinIconHtml(pos.iconUrl, pos.symbol, 'w-6 h-6')}<div><div>${pos.symbol} <span class="text-[9px] text-slate-400 uppercase">${pos.chainId}</span></div><div class="text-[10px] mono text-slate-500 font-normal">⏱ ${durText}</div></div></button></td>
             <td class="px-3 py-2 mono">$${pos.amountUsd.toFixed(2)}</td>
-            <td class="px-3 py-2 mono text-slate-600">${fmtUsd(pos.entryPrice)}</td>
-            <td class="px-3 py-2 mono text-slate-900">${fmtUsd(pos.currentPrice)}</td>
+            <td class="px-3 py-2 mono text-[11px]"><div class="text-slate-500">${fmtUsd(pos.entryPrice)}</div><div class="text-slate-900 font-bold">${fmtUsd(pos.currentPrice)}</div></td>
             <td class="px-3 py-2 mono text-[11px]">${pos.tpPct > 0 ? `<span class="text-emerald-600">+${pos.tpPct}%</span>` : '<span class="text-slate-400">Off</span>'} / ${pos.slPct > 0 ? `<span class="text-rose-600">-${pos.slPct}%</span>` : '<span class="text-slate-400">Off</span>'}</td>
+            <td class="px-3 py-2 mono text-[10px]"><div class="text-emerald-700">TP Buyer: ${fmtUsd(bTp)}</div><div class="text-rose-700">SL Seller: ${fmtUsd(sSl)}</div></td>
             <td class="px-3 py-2 mono font-bold ${pnlUsd >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${pnlUsd >= 0 ? '+' : ''}$${pnlUsd.toFixed(2)} (${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%)</td>
             <td class="px-3 py-2 text-right"><button data-paper-close="${pos.id}" class="btn-paper-close px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[10px] font-semibold">Jual</button></td>
+          </tr>
+          <tr class="bg-slate-50/60">
+            <td colspan="7" class="px-3 py-2.5">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-700">Prediksi</span>
+                <span class="text-[10px] mono text-slate-500">5m – 60m · Basis Live: 5m ${m5 >= 0 ? '+' : ''}${m5.toFixed(1)}% · Beli ${Math.round(br)}%</span>
+              </div>
+              <div class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-12 gap-1.5">
+                ${steps.join('')}
+              </div>
+            </td>
           </tr>`;
         }).join('');
       }
@@ -2279,7 +2409,7 @@
       } else {
         closedBody.innerHTML = paperState.closed.slice(0, 30).map(c => `<tr>
           <td class="px-3 py-2 text-slate-500">${c.time}</td>
-          <td class="px-3 py-2 font-bold text-slate-900">${c.symbol}</td>
+          <td class="px-3 py-2 font-bold text-slate-900">${c.ca ? `<button type="button" data-paper-ca="${c.ca}" class="btn-paper-profile flex items-center gap-2 text-indigo-700 hover:underline">${coinIconHtml(c.iconUrl, c.symbol, 'w-6 h-6')}<span>${c.symbol}</span></button>` : `<div class="flex items-center gap-2">${coinIconHtml(c.iconUrl, c.symbol, 'w-6 h-6')}<span>${c.symbol}</span></div>`}</td>
           <td class="px-3 py-2 mono">$${c.amountUsd.toFixed(2)}</td>
           <td class="px-3 py-2 text-[11px] font-semibold">${c.reason}</td>
           <td class="px-3 py-2 mono font-bold ${c.pnlUsd >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${c.pnlUsd >= 0 ? '+' : ''}$${c.pnlUsd.toFixed(2)}</td>
@@ -2311,11 +2441,27 @@
         if (res.ok) {
           const json = await res.json();
           const map = new Map();
+          const mMap = new Map();
           for (const pair of (json.pairs || [])) {
             const addr = pair.baseToken?.address;
-            if (addr && pair.priceUsd && !map.has(addr)) map.set(addr, Number(pair.priceUsd));
+            if (addr && pair.priceUsd && !map.has(addr)) {
+              map.set(addr, Number(pair.priceUsd));
+              const b = Number(pair.txns?.h1?.buys || 0);
+              const s = Number(pair.txns?.h1?.sells || 0);
+              const sc = scorePair(pair);
+              mMap.set(addr, {
+                m5: sc.m5,
+                buyRatio: sc.buyRatio,
+                buys5m: sc.buys5m,
+                sells5m: sc.sells5m,
+                buyVal5m: sc.buyVal5m,
+                sellVal5m: sc.sellVal5m,
+                netFlow5m: sc.netFlow5m,
+                vol5m: sc.vol5m
+              });
+            }
           }
-          syncPaperWithLivePrices(map);
+          syncPaperWithLivePrices(map, mMap);
           if (!silent) showToast('Harga posisi paper trading diperbarui!', 'success');
         }
       } catch (e) {
@@ -2356,14 +2502,20 @@
         if (price <= 0) { showToast('Harga koin tidak tersedia.', 'error'); return; }
 
         paperState.cashUsd -= amt;
+        const b1h = Number(pair.txns?.h1?.buys || 0);
+        const s1h = Number(pair.txns?.h1?.sells || 0);
+        const brInit = (b1h + s1h) > 0 ? (b1h / (b1h + s1h)) * 100 : 50;
         paperState.open.unshift({
           id: Date.now(),
           ca: pair.baseToken?.address || q,
           symbol: pair.baseToken?.symbol || q.slice(0, 6),
+          iconUrl: (pair.info && pair.info.imageUrl) ? pair.info.imageUrl : '',
           chainId: (pair.chainId || 'solana').toLowerCase(),
           amountUsd: amt,
           entryPrice: price,
           currentPrice: price,
+          m5: Number(pair.priceChange?.m5 || 0),
+          buyRatio: brInit,
           tpPct: tp,
           slPct: sl
         });
@@ -2379,6 +2531,22 @@
       }
     });
 
+    document.getElementById('btnToggleTrades').addEventListener('click', () => {
+      showLiveTrades = !showLiveTrades;
+      document.getElementById('btnToggleTrades').textContent = showLiveTrades ? 'Sembunyikan Live Trades' : 'Tampilkan Live Trades';
+      if (currentToken) renderAuditDetail(currentToken);
+    });
+
+    ['paperOpenBody', 'paperClosedBody'].forEach(tbId => {
+      document.getElementById(tbId).addEventListener('click', (e) => {
+        const profBtn = e.target.closest('.btn-paper-profile');
+        if (profBtn) {
+          const ca = profBtn.getAttribute('data-paper-ca');
+          if (ca) scanLiveCa(ca);
+        }
+      });
+    });
+
     document.getElementById('paperOpenBody').addEventListener('click', (e) => {
       const btn = e.target.closest('.btn-paper-close');
       if (!btn) return;
@@ -2392,6 +2560,7 @@
       paperState.realizedUsd += pnlUsd;
       paperState.closed.unshift({
         time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+        ca: pos.ca,
         symbol: pos.symbol,
         amountUsd: pos.amountUsd,
         reason: 'Jual Manual',
