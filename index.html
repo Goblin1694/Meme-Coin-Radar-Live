@@ -79,6 +79,17 @@
         </button>
       </div>
     </div>
+
+    <!-- Search Results Picker for Duplicate / Multi-Chain Coins -->
+    <div id="searchResultsPanel" class="hidden max-w-6xl mx-auto px-4 pb-3">
+      <div class="bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
+        <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+          <span id="searchResultsTitle" class="text-xs font-bold text-slate-800">Pilih koin yang dituju:</span>
+          <button id="btnCloseSearchResults" type="button" class="text-xs font-semibold text-slate-500 hover:text-slate-800">Tutup ✕</button>
+        </div>
+        <div id="searchResultsList" class="max-h-72 overflow-y-auto divide-y divide-slate-100"></div>
+      </div>
+    </div>
   </header>
 
   <main class="max-w-6xl mx-auto px-4 py-5 space-y-6">
@@ -1574,7 +1585,48 @@
     }
 
     // --- Detailed Audit (Search or Click Coin) ---
-    async function scanLiveCa(query) {
+    function renderSearchPicker(uniquePairs, queryText) {
+      const panel = document.getElementById('searchResultsPanel');
+      const list = document.getElementById('searchResultsList');
+      document.getElementById('searchResultsTitle').textContent = `Ditemukan ${uniquePairs.length} koin untuk "${queryText}" — pilih koin yang dituju:`;
+      list.innerHTML = uniquePairs.map(p => {
+        const sym = p.baseToken?.symbol || 'TOKEN';
+        const nm = p.baseToken?.name || '';
+        const addr = p.baseToken?.address || '';
+        const shortCa = addr.length > 14 ? `${addr.slice(0, 6)}...${addr.slice(-6)}` : addr;
+        const ch = (p.chainId || 'solana').toUpperCase();
+        const liq = fmtUsd(Number(p.liquidity?.usd || 0));
+        const mcap = fmtUsd(Number(p.marketCap || p.fdv || 0));
+        const price = fmtUsd(Number(p.priceUsd || 0));
+        const imgUrl = (p.info && p.info.imageUrl) ? p.info.imageUrl : '';
+        const iconHtml = imgUrl
+          ? `<img src="${imgUrl}" alt="${sym}" class="w-8 h-8 rounded-full object-cover border border-slate-200 bg-slate-100 shrink-0" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" /><div style="display:none" class="w-8 h-8 rounded-full bg-slate-200 text-slate-700 font-bold text-[10px] items-center justify-center shrink-0">${sym.slice(0, 2).toUpperCase()}</div>`
+          : `<div class="w-8 h-8 rounded-full bg-slate-200 text-slate-700 font-bold text-[10px] flex items-center justify-center shrink-0">${sym.slice(0, 2).toUpperCase()}</div>`;
+        return `
+          <button type="button" data-pick-ca="${addr}" class="search-pick-btn w-full text-left px-4 py-2.5 hover:bg-emerald-50/70 transition flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 min-w-0">
+              ${iconHtml}
+              <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-xs font-bold text-slate-900">${sym}</span>
+                <span class="text-[11px] text-slate-500">${nm}</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 text-slate-700 border border-slate-200">${ch}</span>
+                <span class="text-[10px] text-slate-400">${p.dexId || ''}</span>
+              </div>
+              <div class="text-[10px] mono text-slate-400 mt-0.5">CA: ${shortCa}</div>
+              </div>
+            </div>
+            <div class="text-right text-[11px] mono">
+              <div class="font-bold text-slate-900">${price}</div>
+              <div class="text-slate-500">Liq: ${liq} · MCap: ${mcap}</div>
+            </div>
+          </button>
+        `;
+      }).join('');
+      panel.classList.remove('hidden');
+    }
+
+    async function scanLiveCa(query, forceDirect = false) {
       const q = (query || document.getElementById('inputCa').value).trim();
       if (!q || q.length < 2) {
         showToast('Ketik nama koin atau tempel CA.', 'error');
@@ -1584,23 +1636,43 @@
       const btn = document.getElementById('btnScanCa');
       btn.disabled = true;
       try {
-        const isAddr = q.length >= 30 && !q.includes(' ');
+        const isAddr = forceDirect || (q.length >= 30 && !q.includes(' '));
         const url = isAddr
           ? `https://api.dexscreener.com/latest/dex/tokens/${encodeURIComponent(q)}`
           : `https://api.dexscreener.com/latest/dex/search?q=${encodeURIComponent(q)}`;
 
         const res = await fetch(url);
-        let pair = null;
+        let pairs = [];
         if (res.ok) {
           const json = await res.json();
-          if (json.pairs && json.pairs.length > 0) {
-            pair = json.pairs.sort((a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0))[0];
-          }
+          if (Array.isArray(json.pairs)) pairs = json.pairs;
         }
-        if (!pair) {
+        if (pairs.length === 0) {
           showToast('Koin tidak ditemukan.', 'error');
           return;
         }
+
+        // Deduplicate by chainId + baseToken.address, keeping highest liquidity per token
+        const byToken = new Map();
+        for (const p of pairs) {
+          const addr = p.baseToken?.address;
+          if (!addr) continue;
+          const key = `${(p.chainId || '').toLowerCase()}:${addr}`;
+          const prev = byToken.get(key);
+          if (!prev || Number(p.liquidity?.usd || 0) > Number(prev.liquidity?.usd || 0)) {
+            byToken.set(key, p);
+          }
+        }
+        const uniquePairs = Array.from(byToken.values())
+          .sort((a, b) => Number(b.liquidity?.usd || 0) - Number(a.liquidity?.usd || 0));
+
+        if (!isAddr && uniquePairs.length > 1) {
+          renderSearchPicker(uniquePairs.slice(0, 25), q);
+          return;
+        }
+
+        document.getElementById('searchResultsPanel').classList.add('hidden');
+        const pair = uniquePairs[0] || pairs[0];
 
         const ca = pair.baseToken?.address || q;
         const chainId = (pair.chainId || 'solana').toLowerCase();
@@ -1651,6 +1723,9 @@
     function renderAuditDetail(t) {
       document.getElementById('resTokenIcon').outerHTML = coinIconHtml(t.iconUrl, t.symbol, 'w-10 h-10').replace('<div ', '<div id="resTokenIcon" ');
       document.getElementById('resTokenName').textContent = `${t.symbol} (${t.name})`;
+      const iconEl = document.getElementById('resTokenIcon');
+      const tImg = t.pair && t.pair.info && t.pair.info.imageUrl ? t.pair.info.imageUrl : '';
+      if (tImg) { iconEl.src = tImg; iconEl.classList.remove('hidden'); } else { iconEl.classList.add('hidden'); }
       document.getElementById('resChainBadge').textContent = t.chainId.toUpperCase();
       document.getElementById('resCaDisplay').textContent = t.ca;
       document.getElementById('mPrice').textContent = fmtUsd(t.priceUsd);
@@ -1913,6 +1988,19 @@
     });
 
     document.getElementById('btnScanCa').addEventListener('click', () => scanLiveCa());
+    document.getElementById('inputCa').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); scanLiveCa(); }
+    });
+    document.getElementById('btnCloseSearchResults').addEventListener('click', () => {
+      document.getElementById('searchResultsPanel').classList.add('hidden');
+    });
+    document.getElementById('searchResultsList').addEventListener('click', (e) => {
+      const btn = e.target.closest('.search-pick-btn');
+      if (!btn) return;
+      const ca = btn.getAttribute('data-pick-ca');
+      document.getElementById('searchResultsPanel').classList.add('hidden');
+      if (ca) scanLiveCa(ca, true);
+    });
     document.getElementById('btnClearCa').addEventListener('click', () => { document.getElementById('inputCa').value = ''; });
     document.getElementById('btnRefreshFeed').addEventListener('click', fetchLiveRadar);
     document.getElementById('filterChain').addEventListener('change', renderAllBoards);
