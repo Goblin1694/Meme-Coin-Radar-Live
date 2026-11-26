@@ -360,6 +360,13 @@
             class="w-full h-[360px] sm:h-[430px] rounded-xl border border-slate-200 bg-white"></iframe>
         </div>
 
+        <!-- Quick Action: Buka di Paper Trading tepat di bawah Chart Live -->
+        <button id="btnQuickPaperBuy" type="button"
+          class="w-full px-4 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition">
+          <i data-lucide="play-circle" class="w-4 h-4"></i>
+          <span>Buka di Paper Trading (Uji Beli Virtual Harga Live)</span>
+        </button>
+
         <!-- Status Prediksi AI Gemini -->
         <div id="geminiStatusBox" class="p-3.5 rounded-xl border bg-indigo-50/70 border-indigo-200 flex flex-wrap items-center justify-between gap-2">
           <div>
@@ -481,11 +488,7 @@
             <span>Cek / Swap Pump.fun</span>
             <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
           </a>
-          <button id="btnQuickPaperBuy" type="button"
-            class="col-span-2 sm:col-span-4 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition">
-            <i data-lucide="play-circle" class="w-4 h-4"></i>
-            <span>Buka di Paper Trading (Uji Beli Virtual Harga Live)</span>
-          </button>
+
         </div>
       </div>
 
@@ -991,8 +994,11 @@
         </div>
 
         <form id="formPaperOrder" class="grid grid-cols-1 sm:grid-cols-6 gap-2.5">
-          <input id="pQuery" type="text" placeholder="Ticker / CA Koin (mis. PEPE)" required
-            class="sm:col-span-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs mono text-slate-900" />
+          <div class="relative sm:col-span-2">
+            <input id="pQuery" type="text" autocomplete="off" placeholder="Ketik Ticker / CA Koin (mis. PEPE)..." required
+              class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs mono text-slate-900 outline-none focus:border-indigo-500" />
+            <div id="pQueryDropdown" class="hidden absolute left-0 right-0 top-full mt-1 z-50 bg-white border border-slate-200 rounded-xl shadow-xl max-h-64 overflow-y-auto divide-y divide-slate-100"></div>
+          </div>
           <input id="pAmountUsd" type="number" step="1" min="5" value="100" placeholder="Modal ($)" required
             class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs mono text-slate-900" />
           <input id="pTpPct" type="number" step="5" min="0" value="" placeholder="TP % (Opsional)"
@@ -3307,8 +3313,11 @@
       if (pos.adaptiveBias === undefined) pos.adaptiveBias = 0;
       if (pos.momentumDamp === undefined) pos.momentumDamp = 1.0;
 
-      // Populate distinct per-minute predictions (1m..60m) anchored at entry curve
-      for (let m = 1; m <= 60; m++) {
+      // Populate distinct per-minute predictions dynamically (1m..60m+ unlimited rolling horizon)
+      const _elNow = Math.floor((Date.now() - (pos.boughtAt || pos.id || Date.now())) / 60000);
+      const _horizonEnd = Math.max(60, _elNow + 15);
+      const _horizonStart = Math.max(1, _elNow - 60);
+      for (let m = _horizonStart; m <= _horizonEnd; m++) {
         if (!pos.minutePredictions[m]) {
           pos.minutePredictions[m] = predictMinuteOnCurve(pos, m, 0, pos.entryPrice || pos.currentPrice);
         }
@@ -3344,8 +3353,9 @@
       pos.momentumDamp = Number(Math.max(0.35, (pos.momentumDamp || 1.0) * 0.85).toFixed(3));
       pos.predBaselinePrice = pos.currentPrice;
 
-      // Recalculate future per-minute predictions (nextMin..60) anchored from current live curve point
-      for (let m = nextMin; m <= 60; m++) {
+      // Recalculate future per-minute predictions dynamically (nextMin..nextMin+15, unlimited past 60m)
+      const recalcEnd = Math.max(60, nextMin + 15);
+      for (let m = nextMin; m <= recalcEnd; m++) {
         pos.minutePredictions[m] = predictMinuteOnCurve(pos, m, failedMin, pos.currentPrice);
         if (m % 5 === 0) {
           pos.stepPredictions[m] = {
@@ -3438,7 +3448,7 @@
 
         // Evaluate every elapsed minute (1m, 2m, 3m, ...) against curve prediction & recalibrate to m+1 if GAGAL
         let latestFailedMin = null;
-        for (let m = 1; m <= Math.min(elapsedMin, 60); m++) {
+        for (let m = Math.max(1, elapsedMin - 60); m <= elapsedMin; m++) {
           if (!pos.minuteLogs[m]) {
             const actualPct = pos.entryPrice > 0 ? ((pos.currentPrice - pos.entryPrice) / pos.entryPrice) * 100 : 0;
             const pred = (pos.minutePredictions && pos.minutePredictions[m]) || predictMinuteOnCurve(pos, m, 0, pos.entryPrice);
@@ -3464,7 +3474,7 @@
         }
 
         // Also update 5m checkpoint summary badges
-        for (let cp = 5; cp <= Math.min(elapsedMin, 60); cp += 5) {
+        for (let cp = Math.max(5, Math.floor(Math.max(5, elapsedMin - 60) / 5) * 5); cp <= elapsedMin; cp += 5) {
           if (!pos.stepResults[cp] && pos.minuteLogs[cp]) {
             pos.stepResults[cp] = {
               status: pos.minuteLogs[cp].status,
@@ -3538,7 +3548,7 @@
           // Show next 8 distinct per-minute predictions (each minute unique, non-multiple, anchored at entry curve)
           const minuteCards = [];
           for (let offset = 0; offset < 8; offset++) {
-            const m = Math.min(60, startMin + offset);
+            const m = startMin + offset;
             const mp = (pos.minutePredictions && pos.minutePredictions[m]) || predictMinuteOnCurve(pos, m, 0, pos.entryPrice);
             const projPct = Number(mp.projPct || 0);
             const projPrice = mp.targetPrice || pos.currentPrice;
@@ -4302,6 +4312,117 @@
         await pullFromServer(true);
       }
     })();
+
+    // --- Paper Trading Live Coin Autocomplete Picker ---
+    const pQueryInput = document.getElementById('pQuery');
+    const pQueryDrop = document.getElementById('pQueryDropdown');
+    let pSuggestTimer = null;
+
+    function renderPaperSuggestions(pairs) {
+      if (!pQueryDrop) return;
+      if (!pairs || pairs.length === 0) {
+        pQueryDrop.classList.add('hidden');
+        return;
+      }
+      const seen = new Map();
+      for (const p of pairs) {
+        const addr = p.baseToken?.address;
+        if (!addr) continue;
+        const key = `${(p.chainId || '').toLowerCase()}:${addr}`;
+        const prev = seen.get(key);
+        if (!prev || Number(p.liquidity?.usd || 0) > Number(prev.liquidity?.usd || 0)) {
+          seen.set(key, p);
+        }
+      }
+      const list = Array.from(seen.values())
+        .sort((a, b) => Number(b.liquidity?.usd || 0) - Number(a.liquidity?.usd || 0))
+        .slice(0, 12);
+
+      if (list.length === 0) {
+        pQueryDrop.classList.add('hidden');
+        return;
+      }
+      pQueryDrop.innerHTML = list.map(p => {
+        const sym = p.baseToken?.symbol || 'TOKEN';
+        const name = p.baseToken?.name || '';
+        const chain = (p.chainId || 'solana').toUpperCase();
+        const ca = p.baseToken?.address || '';
+        const shortCa = ca.length > 14 ? `${ca.slice(0, 6)}...${ca.slice(-4)}` : ca;
+        const price = fmtUsd(Number(p.priceUsd || 0));
+        const liq = fmtUsd(Number(p.liquidity?.usd || 0));
+        const iconUrl = (p.info && p.info.imageUrl) ? p.info.imageUrl : '';
+        return `<button type="button" data-pick-ca="${ca}" data-pick-sym="${sym}" class="p-suggest-item w-full px-3 py-2 hover:bg-indigo-50 text-left flex items-center justify-between gap-2 transition">
+          <div class="flex items-center gap-2 min-w-0">
+            ${coinIconHtml(iconUrl, sym, 'w-7 h-7')}
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs font-bold text-slate-900 truncate">${sym}</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 text-slate-600">${chain}</span>
+              </div>
+              <div class="text-[10px] text-slate-500 truncate">${name} · <span class="mono">${shortCa}</span></div>
+            </div>
+          </div>
+          <div class="text-right shrink-0 mono">
+            <div class="text-[11px] font-bold text-slate-900">${price}</div>
+            <div class="text-[9px] text-slate-400">Liq ${liq}</div>
+          </div>
+        </button>`;
+      }).join('');
+      pQueryDrop.classList.remove('hidden');
+    }
+
+    if (pQueryInput && pQueryDrop) {
+      pQueryInput.addEventListener('focus', () => {
+        const q = pQueryInput.value.trim();
+        if (!q && allLivePairs.length > 0) {
+          renderPaperSuggestions(allLivePairs.slice(0, 12));
+        }
+      });
+
+      pQueryInput.addEventListener('input', () => {
+        const q = pQueryInput.value.trim();
+        clearTimeout(pSuggestTimer);
+        if (q.length < 2) {
+          if (q.length === 0 && allLivePairs.length > 0) {
+            renderPaperSuggestions(allLivePairs.slice(0, 12));
+          } else {
+            pQueryDrop.classList.add('hidden');
+          }
+          return;
+        }
+        const qLow = q.toLowerCase();
+        const localMatches = (allLivePairs || []).filter(p =>
+          (p.baseToken?.symbol || '').toLowerCase().includes(qLow) ||
+          (p.baseToken?.name || '').toLowerCase().includes(qLow) ||
+          (p.baseToken?.address || '').toLowerCase().includes(qLow)
+        );
+        if (localMatches.length > 0) renderPaperSuggestions(localMatches);
+
+        pSuggestTimer = setTimeout(async () => {
+          const liveMatches = await fetchLivePairsMultiSource(q, false);
+          const merged = [...liveMatches, ...localMatches];
+          renderPaperSuggestions(merged);
+        }, 280);
+      });
+
+      pQueryDrop.addEventListener('click', (e) => {
+        const btn = e.target.closest('.p-suggest-item');
+        if (!btn) return;
+        const ca = btn.getAttribute('data-pick-ca');
+        const sym = btn.getAttribute('data-pick-sym');
+        if (ca) {
+          pQueryInput.value = ca;
+          pQueryDrop.classList.add('hidden');
+          showToast(`Koin ${sym} dipilih (${ca.slice(0, 6)}...${ca.slice(-4)})`, 'info');
+        }
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!pQueryDrop.contains(e.target) && e.target !== pQueryInput) {
+          pQueryDrop.classList.add('hidden');
+        }
+      });
+    }
   </script>
 </body>
 </html>
