@@ -1508,6 +1508,9 @@
       } else {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
+      setTimeout(() => {
+        if (typeof startProductTour === 'function') startProductTour(viewType || 'radar', false);
+      }, 400);
     }
 
     function formatCoinAge(ageHours) {
@@ -4482,24 +4485,44 @@
       ],
       audit: [
         {
+          el: '#verdictBox',
+          title: 'Skor Kredibilitas & Tombol Favorit',
+          body: 'Lihat ringkasan skor keamanan koin di sini (Kredibel, Waspada, atau Risiko Scam) dan klik bintang untuk menyimpannya ke daftar Favorit.'
+        },
+        {
+          el: '#chkCoinAlert',
+          title: 'Notifikasi Harga ke HP (Android & iOS)',
+          body: 'Aktifkan pemantauan untuk menerima notifikasi langsung ke HP jika harga koin ini naik atau turun melewati persentase target Anda.'
+        },
+        {
           el: '#quickRugCheckBox',
           title: 'Cek Cepat: Koreksi Biasa vs Rug/Dump',
-          body: 'Indikator cepat untuk membedakan koreksi sehat dan tanda rug/dump lewat rasio Buyer/Seller 5m, perubahan likuiditas, serta tautan langsung ke DEX Screener & Bubblemaps.'
+          body: 'Bedakan koreksi sehat dan tanda rug/dump lewat rasio Buyer/Seller 5 menit, perubahan likuiditas DEX Screener, dan pengecekan Top Holders di Bubblemaps.'
+        },
+        {
+          el: '#liveChartWrap',
+          title: 'Chart Live & Transaksi Real-Time',
+          body: 'Pantau pergerakan candlestick dan transaksi beli/jual secara live, atau buka layar penuh di DEX Screener & Live Chat GMGN.AI.'
         },
         {
           el: '#btnQuickPaperBuy',
           title: 'Uji Beli Virtual Harga Live (Paper Trading)',
-          body: 'Setelah melihat Chart Live di atas, klik tombol ini untuk langsung menguji strategi beli pada koin ini memakai saldo virtual tanpa risiko uang asli.'
+          body: 'Klik tombol ini untuk langsung menguji beli koin ini di menu Paper Trading menggunakan saldo virtual harga live sebelum memakai uang asli.'
         },
         {
           el: '#onChainScanGrid',
           title: 'Auto-Scanner Kontrak On-Chain',
-          body: 'Menampilkan status Mint Authority, Freeze/Honeypot, persentase LP Locked, dan konsentrasi Top 10 Holders secara otomatis dari RugCheck & GoPlus.'
+          body: 'Periksa otomatis status Mint Authority, Freeze/Honeypot, persentase LP Locked/Burned, serta konsentrasi Top 10 Holders dari RugCheck & GoPlus.'
+        },
+        {
+          el: '#linkJupiter',
+          title: 'Quick Swap & Analisis Lanjutan',
+          body: 'Tautan 1-klik langsung dengan CA terisi otomatis ke Jupiter, GMGN.AI, Pump.fun, Bubblemaps, dan Arkham.'
         },
         {
           el: '#inpIdrBudget',
           title: 'Kalkulator Posisi & Konverter Indodax',
-          body: 'Masukkan modal Rupiah Anda untuk menghitung jumlah bersih di Phantom, estimasi token yang didapat, dan potensi cair kembali ke IDR saat Target TP.'
+          body: 'Masukkan modal Rupiah Anda untuk menghitung jumlah bersih di Phantom, estimasi token yang didapat, serta estimasi cair ke IDR saat Target TP.'
         }
       ],
       paper: [
@@ -4526,7 +4549,7 @@
           body: 'Semua koin berbintang (★) berkumpul di sini. Anda bisa memantau perubahan harga live dan menerima notifikasi HP saat harga naik atau turun sesuai target.'
         }
       ],
-      modelAudit: [
+      model: [
         {
           el: '#auditBullAcc',
           title: 'Audit Akurasi Prediksi Transparan',
