@@ -882,6 +882,62 @@
       </div>
     </section>
 
+    <!-- VIEW 8: KOMUNITAS & FORUM -->
+    <section id="viewCommunity" class="hidden space-y-5">
+      <div class="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
+        <div>
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200">KOMUNITAS &amp; FORUM</span>
+          <h2 class="text-base sm:text-lg font-bold text-slate-900 mt-1">Hub Komunitas &amp; Diskusi Meme Coin</h2>
+          <p class="text-xs text-slate-500">Pantau obrolan komunitas kripto lintas platform atau bagikan catatan diskusi sesama pengguna.</p>
+        </div>
+
+        <!-- Active Coin Community Strip -->
+        <div id="commActiveCoinBox" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+          <div class="text-xs font-bold text-slate-800">Diskusi Koin Aktif: <span id="commCoinName" class="text-emerald-700">Belum ada koin dipilih</span></div>
+          <div id="commCoinLinks" class="flex flex-wrap gap-2 text-xs text-slate-500">Pilih koin dari Radar untuk memunculkan link grup Telegram &amp; X koin tersebut.</div>
+        </div>
+
+        <!-- Global Crypto Communities -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
+          <a href="https://www.reddit.com/r/solana/" target="_blank" rel="noopener noreferrer" class="p-3 rounded-xl bg-orange-50 hover:bg-orange-100 border border-orange-200 flex items-center justify-between transition">
+            <div><div class="font-bold text-orange-900">Reddit r/solana</div><div class="text-[11px] text-orange-700">Diskusi ekosistem &amp; meme coin Solana</div></div>
+            <i data-lucide="external-link" class="w-4 h-4 text-orange-700"></i>
+          </a>
+          <a href="https://www.reddit.com/r/memecoins/" target="_blank" rel="noopener noreferrer" class="p-3 rounded-xl bg-orange-50 hover:bg-orange-100 border border-orange-200 flex items-center justify-between transition">
+            <div><div class="font-bold text-orange-900">Reddit r/memecoins</div><div class="text-[11px] text-orange-700">Forum tren meme coin multi-chain</div></div>
+            <i data-lucide="external-link" class="w-4 h-4 text-orange-700"></i>
+          </a>
+          <a href="https://x.com/search?q=%23memecoin%20OR%20%23solana&src=typed_query&f=live" target="_blank" rel="noopener noreferrer" class="p-3 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 flex items-center justify-between transition">
+            <div><div class="font-bold text-slate-900">𝕏 (Twitter) Live Buzz</div><div class="text-[11px] text-slate-600">Pantau sentimen &amp; CA viral real-time</div></div>
+            <i data-lucide="external-link" class="w-4 h-4 text-slate-700"></i>
+          </a>
+          <a href="https://gmgn.ai/?chain=sol" target="_blank" rel="noopener noreferrer" class="p-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 flex items-center justify-between transition">
+            <div><div class="font-bold text-emerald-900">GMGN.AI Tren &amp; Smart Money</div><div class="text-[11px] text-emerald-700">Order flow &amp; pergerakan whale</div></div>
+            <i data-lucide="external-link" class="w-4 h-4 text-emerald-700"></i>
+          </a>
+          <a href="https://dexscreener.com/" target="_blank" rel="noopener noreferrer" class="p-3 rounded-xl bg-sky-50 hover:bg-sky-100 border border-sky-200 flex items-center justify-between transition">
+            <div><div class="font-bold text-sky-900">DEX Screener Trending</div><div class="text-[11px] text-sky-700">Reaksi komunitas &amp; pair baru</div></div>
+            <i data-lucide="external-link" class="w-4 h-4 text-sky-700"></i>
+          </a>
+          <a href="https://github.com/Goblin1694/Meme-Coin-Radar-Live/discussions" target="_blank" rel="noopener noreferrer" class="p-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 flex items-center justify-between transition">
+            <div><div class="font-bold text-indigo-900">Forum GitHub Discussions</div><div class="text-[11px] text-indigo-700">Diskusi resmi pengguna website ini</div></div>
+            <i data-lucide="external-link" class="w-4 h-4 text-indigo-700"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Local Community Notes / Chat Board -->
+      <div class="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+        <h3 class="text-sm font-bold text-slate-900">Catatan &amp; Watchlist Diskusi Pribadi</h3>
+        <form id="formCommNote" class="flex flex-col sm:flex-row gap-2">
+          <input id="commNoteInput" type="text" placeholder="Tulis catatan sinyal, link grup Telegram, atau info koin..." required
+            class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900" />
+          <button type="submit" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs transition">Simpan Catatan</button>
+        </form>
+        <div id="commNotesList" class="space-y-2 text-xs text-slate-600"></div>
+      </div>
+    </section>
+
   </main>
 
   <!-- TRENDING POPUP MENU -->
@@ -931,6 +987,44 @@
     </button>
   </div>
 
+  <!-- OTHERS POPUP SUB-MENU -->
+  <div id="othersBackdrop" class="hidden fixed inset-0 z-40 bg-slate-900/25 backdrop-blur-[2px]"></div>
+  <div id="othersPopup" class="hidden fixed bottom-20 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-sm bg-white border border-slate-200 rounded-2xl shadow-xl p-3 space-y-1.5">
+    <div class="flex items-center justify-between px-2 py-1 border-b border-slate-100">
+      <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Menu Lainnya (Others)</span>
+      <button id="btnCloseOthers" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+    <button id="popJournal" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-emerald-50 text-left transition">
+      <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+        <i data-lucide="book-open" class="w-4 h-4"></i>
+      </div>
+      <div>
+        <div class="text-xs font-bold text-slate-900">Jurnal Trading &amp; Risk Guard</div>
+        <div class="text-[11px] text-slate-500">Catatan transaksi nyata &amp; batas rugi harian</div>
+      </div>
+    </button>
+    <button id="popCommunity" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-sky-50 text-left transition">
+      <div class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center shrink-0">
+        <i data-lucide="messages-square" class="w-4 h-4"></i>
+      </div>
+      <div>
+        <div class="text-xs font-bold text-slate-900">Komunitas &amp; Forum</div>
+        <div class="text-[11px] text-slate-500">Diskusi kripto, Telegram &amp; GitHub Forum</div>
+      </div>
+    </button>
+    <button id="popSettings" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-left transition">
+      <div class="w-8 h-8 rounded-lg bg-slate-200 text-slate-700 flex items-center justify-center shrink-0">
+        <i data-lucide="settings" class="w-4 h-4"></i>
+      </div>
+      <div>
+        <div class="text-xs font-bold text-slate-900">Pengaturan AI &amp; Strategi</div>
+        <div class="text-[11px] text-slate-500">Pilih AI, API Key, target akurasi &amp; strategi</div>
+      </div>
+    </button>
+  </div>
+
   <!-- MOBILE-FRIENDLY BOTTOM NAVIGATION BAR -->
   <nav class="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 safe-bottom shadow-[0_-4px_20px_rgba(15,23,42,0.06)]">
     <div class="max-w-3xl mx-auto grid grid-cols-6 h-16">
@@ -950,17 +1044,13 @@
         <i data-lucide="play-circle" class="w-5 h-5"></i>
         <span class="text-[10px]">Paper</span>
       </button>
-      <button id="navJournal" class="hidden" aria-hidden="true">
-        <i data-lucide="book-open" class="w-5 h-5"></i>
-        <span class="text-[10px]">Jurnal</span>
-      </button>
       <button id="navTraktir" class="bnav-btn flex flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-rose-600">
         <i data-lucide="coffee" class="w-5 h-5"></i>
         <span class="text-[10px]">Traktir</span>
       </button>
-      <button id="navSettings" class="bnav-btn flex flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-slate-700">
-        <i data-lucide="settings" class="w-5 h-5"></i>
-        <span class="text-[10px]">Pengaturan</span>
+      <button id="navOthers" class="bnav-btn flex flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-slate-700">
+        <i data-lucide="layout-grid" class="w-5 h-5"></i>
+        <span class="text-[10px]">Others</span>
       </button>
     </div>
   </nav>
@@ -1142,6 +1232,7 @@
 
     // --- Bottom Nav Routing ---
     function setActiveNav(btnId, viewType, scrollTargetId = null) {
+      toggleOthersPopup(true);
       document.querySelectorAll('.bnav-btn').forEach(b => {
         b.className = 'bnav-btn flex flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-slate-700';
       });
@@ -1158,6 +1249,7 @@
       document.getElementById('viewSettings').classList.toggle('hidden', viewType !== 'settings');
       document.getElementById('viewTraktir').classList.toggle('hidden', viewType !== 'traktir');
       document.getElementById('viewPaper').classList.toggle('hidden', viewType !== 'paper');
+      document.getElementById('viewCommunity').classList.toggle('hidden', viewType !== 'community');
       document.getElementById('viewFavorit').classList.toggle('hidden', viewType !== 'favorit');
 
       if (viewType === 'audit') updateSizer();
@@ -1953,6 +2045,25 @@
         popup.classList.add('hidden');
         backdrop.classList.add('hidden');
       } else {
+        toggleOthersPopup(true);
+        popup.classList.remove('hidden');
+        backdrop.classList.remove('hidden');
+      }
+    }
+
+    function toggleOthersPopup(forceClose = false) {
+      const popup = document.getElementById('othersPopup');
+      const backdrop = document.getElementById('othersBackdrop');
+      if (!popup || !backdrop) return;
+      const isOpen = !popup.classList.contains('hidden');
+      if (forceClose || isOpen) {
+        popup.classList.add('hidden');
+        backdrop.classList.add('hidden');
+      } else {
+        const tp = document.getElementById('trendingPopup');
+        const tb = document.getElementById('trendingBackdrop');
+        if (tp) tp.classList.add('hidden');
+        if (tb) tb.classList.add('hidden');
         popup.classList.remove('hidden');
         backdrop.classList.remove('hidden');
       }
@@ -1982,10 +2093,7 @@
       toggleTrendingPopup(true);
       setActiveNav('navModelAudit', 'model');
     });
-    document.getElementById('navJournal').addEventListener('click', () => {
-      toggleTrendingPopup(true);
-      setActiveNav('navJournal', 'journal');
-    });
+
 
     document.getElementById('btnScanCa').addEventListener('click', () => scanLiveCa());
     document.getElementById('inputCa').addEventListener('keydown', (e) => {
@@ -2284,9 +2392,71 @@
       toggleTrendingPopup(true);
       setActiveNav('navTraktir', 'traktir');
     });
-    document.getElementById('navSettings').addEventListener('click', () => {
-      toggleTrendingPopup(true);
-      setActiveNav('navSettings', 'settings');
+    document.getElementById('navOthers').addEventListener('click', () => toggleOthersPopup(false));
+    document.getElementById('othersBackdrop').addEventListener('click', () => toggleOthersPopup(true));
+    document.getElementById('btnCloseOthers').addEventListener('click', () => toggleOthersPopup(true));
+    document.getElementById('popJournal').addEventListener('click', () => {
+      toggleOthersPopup(true);
+      setActiveNav('navOthers', 'journal');
+    });
+    const COMM_KEY = `meme_radar_comm_${ACTIVE_UID}`;
+    let commNotes = [];
+    try {
+      const cs = localStorage.getItem(COMM_KEY);
+      if (cs) commNotes = JSON.parse(cs);
+    } catch (e) {}
+
+    function renderCommunityView() {
+      const nameEl = document.getElementById('commCoinName');
+      const linksEl = document.getElementById('commCoinLinks');
+      if (currentToken) {
+        nameEl.textContent = `${currentToken.symbol} (${currentToken.chainId.toUpperCase()})`;
+        const safeCa = encodeURIComponent(currentToken.ca);
+        const symEnc = encodeURIComponent(currentToken.symbol);
+        const btns = [
+          `<a href="https://x.com/search?q=%24${symEnc}%20OR%20${safeCa}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-800 font-semibold">𝕏 Diskusi $${currentToken.symbol}</a>`,
+          `<a href="https://www.google.com/search?q=site%3At.me+${symEnc}+OR+${safeCa}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-lg bg-sky-50 border border-sky-200 text-sky-800 font-semibold">✈️ Cari Telegram ${currentToken.symbol}</a>`,
+          `<a href="https://www.reddit.com/search/?q=${symEnc}%20crypto" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-lg bg-orange-50 border border-orange-200 text-orange-800 font-semibold">🟠 Reddit ${currentToken.symbol}</a>`
+        ];
+        (currentToken.socials || []).forEach(s => {
+          btns.unshift(`<a href="${s.url}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold">✓ Resmi: ${s.display}</a>`);
+        });
+        linksEl.innerHTML = btns.join('');
+      }
+      const listEl = document.getElementById('commNotesList');
+      listEl.innerHTML = commNotes.length
+        ? commNotes.map(n => `<div class="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200/80"><span><strong class="text-slate-400 mono mr-2">${n.time}</strong>${n.text}</span><button data-comm-del="${n.id}" class="btn-comm-del text-rose-600 text-[11px] font-semibold">Hapus</button></div>`).join('')
+        : '<div class="text-slate-400">Belum ada catatan diskusi tersimpan.</div>';
+    }
+
+    document.getElementById('formCommNote').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const txt = document.getElementById('commNoteInput').value.trim();
+      if (!txt) return;
+      commNotes.unshift({ id: Date.now(), time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }), text: txt });
+      try { localStorage.setItem(COMM_KEY, JSON.stringify(commNotes)); } catch (e) {}
+      document.getElementById('commNoteInput').value = '';
+      renderCommunityView();
+      showToast('Catatan komunitas disimpan!', 'success');
+    });
+
+    document.getElementById('commNotesList').addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-comm-del');
+      if (!btn) return;
+      const id = Number(btn.getAttribute('data-comm-del'));
+      commNotes = commNotes.filter(n => n.id !== id);
+      try { localStorage.setItem(COMM_KEY, JSON.stringify(commNotes)); } catch (e) {}
+      renderCommunityView();
+    });
+
+    document.getElementById('popCommunity').addEventListener('click', () => {
+      toggleOthersPopup(true);
+      setActiveNav('navOthers', 'community');
+      renderCommunityView();
+    });
+    document.getElementById('popSettings').addEventListener('click', () => {
+      toggleOthersPopup(true);
+      setActiveNav('navOthers', 'settings');
     });
 
     function sendMobileNotification(title, body) {
