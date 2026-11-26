@@ -901,6 +901,10 @@
             <p class="text-xs text-slate-500">Data Paper Trading terisolasi khusus untuk perangkat &amp; sesi kamu sendiri (tidak terlihat oleh pengguna lain).</p>
           </div>
           <div class="flex items-center gap-2">
+            <button id="btnBuyAllRadar" type="button" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition">
+              <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+              <span>Beli Semua Koin Radar</span>
+            </button>
             <button id="btnNewPaperSession" class="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold">
               Sesi Baru
             </button>
@@ -2864,10 +2868,109 @@
       } catch (e) {}
     }
 
+    function initPredictionCheckpoints(pos) {
+      if (!pos.predBaselinePrice || pos.predBaselinePrice <= 0) pos.predBaselinePrice = pos.entryPrice || pos.currentPrice || 0;
+      if (!pos.minuteLogs) pos.minuteLogs = {};
+      if (!pos.stepResults) pos.stepResults = {};
+      if (!pos.reAudits) pos.reAudits = [];
+      if (!pos.activeTargetMin) pos.activeTargetMin = 5;
+      if (!pos.stepPredictions) {
+        pos.stepPredictions = {};
+        const m5 = Number(pos.m5 || 0);
+        const br = Number(pos.buyRatio ?? 50);
+        const base5m = Math.max(-10, Math.min(10, (m5 * 0.5) + ((br - 50) * 0.12)));
+        for (let step = 1; step <= 12; step++) {
+          const mins = step * 5;
+          const projPct = Number((base5m * Math.pow(step, 0.72)).toFixed(2));
+          pos.stepPredictions[mins] = {
+            mins,
+            projPct,
+            targetPrice: pos.predBaselinePrice * (1 + (projPct / 100))
+          };
+        }
+      }
+    }
+
+    async function runComprehensiveAiReAudit(pos, failedMin, meta = null) {
+      if (pos._reAuditing) return;
+      pos._reAuditing = true;
+      const nextMin = failedMin + 5;
+      const livePair = allLivePairs.find(p => p.baseToken?.address === pos.ca);
+      const scored = livePair ? scorePair(livePair) : null;
+      const m5 = Number((meta && meta.m5) ?? (scored && scored.m5) ?? pos.m5 ?? 0);
+      const br = Number((meta && meta.buyRatio) ?? (scored && scored.buyRatio) ?? pos.buyRatio ?? 50);
+      const liq = scored ? scored.liq : 0;
+      const vol = scored ? scored.vol : 0;
+      const oldPred = (pos.stepPredictions && pos.stepPredictions[failedMin]) ? pos.stepPredictions[failedMin].projPct : 0;
+      const actualPct = pos.predBaselinePrice > 0 ? ((pos.currentPrice - pos.predBaselinePrice) / pos.predBaselinePrice) * 100 : 0;
+
+      // Recalibrate prediction for nextMin (e.g. Menit ke-10)
+      const newStep5m = Math.max(-12, Math.min(12, (m5 * 0.55) + ((br - 50) * 0.16)));
+      const newDir = newStep5m >= 0 ? 'NAIK' : 'TURUN';
+      let aiSummary = '';
+
+      const prompt = `Audit ulang menyeluruh meme coin ${pos.symbol} (${pos.chainId}) setelah prediksi menit ke-${failedMin} GAGAL. Target awal: ${oldPred >= 0 ? '+' : ''}${oldPred.toFixed(1)}%, realisasi: ${actualPct >= 0 ? '+' : ''}${actualPct.toFixed(2)}%. Data live terbaru: Harga ${fmtUsd(pos.currentPrice)}, Momentum 5m ${m5.toFixed(1)}%, Tekanan Beli ${Math.round(br)}%, Liq ${fmtUsd(liq)}, Vol 1j ${fmtUsd(vol)}. Berikan diagnosis singkat penyebab gagal dan arah prediksi akurat untuk menit ke-${nextMin} berikutnya dalam 2 kalimat Bahasa Indonesia.`;
+
+      if (userSettings.aiProvider !== 'gemini-default' && (userSettings.aiProvider === 'pollinations-free' || userSettings.aiKey)) {
+        try {
+          if (userSettings.aiProvider === 'pollinations-free') {
+            const res = await fetch('https://text.pollinations.ai/openai', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ model: userSettings.aiModel || 'openai', messages: [{ role: 'user', content: prompt }] })
+            });
+            const data = await res.json();
+            aiSummary = (data?.choices?.[0]?.message?.content || '').trim();
+          } else if (userSettings.aiProvider === 'gemini-custom') {
+            const model = userSettings.aiModel || 'gemini-2.5-flash';
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(userSettings.aiKey)}`, {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            });
+            const data = await res.json();
+            aiSummary = (data?.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
+          }
+        } catch (e) {}
+      }
+
+      if (!aiSummary) {
+        const washWarn = scored && scored.isWashTrade ? 'Terdeteksi indikasi wash-trade/lonjakan tidak wajar. ' : '';
+        const credTxt = scored ? `Kredibilitas ${scored.cred}%, ` : '';
+        aiSummary = `Audit Ulang AI (${pos.symbol}): Prediksi ${failedMin}m meleset (${actualPct.toFixed(2)}% vs target ${oldPred.toFixed(1)}%). ${washWarn}${credTxt}tekanan beli kini ${Math.round(br)}% dengan momentum 5m ${m5 >= 0 ? '+' : ''}${m5.toFixed(1)}% — kalibrasi ulang target menit ke-${nextMin}: ${newDir} (${newStep5m >= 0 ? '+' : ''}${newStep5m.toFixed(1)}%).`;
+      }
+
+      // Reset baseline from current live price for the next window & update future stepPredictions
+      pos.predBaselinePrice = pos.currentPrice;
+      for (let m = nextMin; m <= 60; m += 5) {
+        const stepOffset = Math.max(1, Math.round((m - failedMin) / 5));
+        const projPct = Number((newStep5m * Math.pow(stepOffset, 0.72)).toFixed(2));
+        pos.stepPredictions[m] = {
+          mins: m,
+          projPct,
+          targetPrice: pos.currentPrice * (1 + (projPct / 100))
+        };
+      }
+
+      pos.reAudits.unshift({
+        atMin: failedMin,
+        nextMin,
+        oldProjPct: oldPred,
+        actualPct: Number(actualPct.toFixed(2)),
+        newProjPct: Number(newStep5m.toFixed(2)),
+        newDir,
+        summary: aiSummary,
+        ts: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+      });
+      pos._reAuditing = false;
+      savePaper();
+      renderPaper();
+      showToast(`🔄 ${pos.symbol}: Prediksi ${failedMin}m GAGAL — AI selesai audit ulang untuk Menit ke-${nextMin}!`, 'info');
+    }
+
     function syncPaperWithLivePrices(priceMap, metaMap = null) {
       let changed = false;
       const remaining = [];
       for (const pos of paperState.open) {
+        initPredictionCheckpoints(pos);
         const liveP = priceMap && priceMap.get(pos.ca);
         if (liveP && liveP > 0) pos.currentPrice = liveP;
         const meta = metaMap && metaMap.get(pos.ca);
@@ -2876,6 +2979,52 @@
           pos.buyRatio = meta.buyRatio;
           if (meta.pairCreatedAt) pos.pairCreatedAt = meta.pairCreatedAt;
         }
+
+        const boughtTs = pos.boughtAt || pos.id || Date.now();
+        const elapsedMin = Math.floor((Date.now() - boughtTs) / 60000);
+        const baseP = pos.predBaselinePrice || pos.entryPrice || pos.currentPrice;
+
+        // 1. Evaluate every elapsed minute (1m, 2m, 3m, ...)
+        for (let m = 1; m <= Math.min(elapsedMin, 120); m++) {
+          if (!pos.minuteLogs[m]) {
+            const actualPct = baseP > 0 ? ((pos.currentPrice - baseP) / baseP) * 100 : 0;
+            const cpKey = Math.min(60, Math.ceil(m / 5) * 5);
+            const targetPred = pos.stepPredictions[cpKey];
+            const expectUp = targetPred ? targetPred.projPct >= 0 : true;
+            const ok = expectUp ? (actualPct > 0) : (actualPct < 0);
+            pos.minuteLogs[m] = {
+              min: m,
+              price: pos.currentPrice,
+              actualPct: Number(actualPct.toFixed(2)),
+              status: ok ? 'BERHASIL' : 'GAGAL',
+              time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+            };
+            changed = true;
+          }
+        }
+
+        // 2. Evaluate 5m, 10m, 15m... checkpoints; trigger mandatory AI Re-Audit if GAGAL
+        for (let cp = 5; cp <= Math.min(elapsedMin, 60); cp += 5) {
+          if (!pos.stepResults[cp]) {
+            const actualPct = baseP > 0 ? ((pos.currentPrice - baseP) / baseP) * 100 : 0;
+            const targetPred = pos.stepPredictions[cp];
+            const expectUp = targetPred ? targetPred.projPct >= 0 : true;
+            const ok = expectUp ? (actualPct > 0) : (actualPct < 0);
+            pos.stepResults[cp] = {
+              status: ok ? 'BERHASIL' : 'GAGAL',
+              actualPct: Number(actualPct.toFixed(2)),
+              targetPct: targetPred ? targetPred.projPct : 0,
+              price: pos.currentPrice,
+              time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+            };
+            pos.activeTargetMin = cp + 5;
+            changed = true;
+            if (!ok) {
+              runComprehensiveAiReAudit(pos, cp, meta);
+            }
+          }
+        }
+
         const pct = pos.entryPrice > 0 ? ((pos.currentPrice - pos.entryPrice) / pos.entryPrice) * 100 : 0;
         const hitTp = pos.tpPct > 0 && pct >= pos.tpPct;
         const hitSl = pos.slPct > 0 && pct <= -pos.slPct;
@@ -2921,24 +3070,42 @@
           unrealized += pnlUsd;
           lockedCost += pos.amountUsd;
 
-          // Build 5m to 60m (12 steps) damped live momentum prediction
+          initPredictionCheckpoints(pos);
           const m5 = Number(pos.m5 || 0);
           const br = Number(pos.buyRatio ?? 50);
-          const base5m = Math.max(-10, Math.min(10, (m5 * 0.5) + ((br - 50) * 0.12)));
           const steps = [];
           for (let step = 1; step <= 12; step++) {
             const mins = step * 5;
-            const projPct = base5m * Math.pow(step, 0.72);
-            const projPrice = pos.currentPrice * (1 + (projPct / 100));
+            const sp = (pos.stepPredictions && pos.stepPredictions[mins]) || { projPct: 0, targetPrice: pos.currentPrice };
+            const projPct = Number(sp.projPct || 0);
+            const projPrice = sp.targetPrice || pos.currentPrice;
             const isUp = projPct >= 0;
+            const res = pos.stepResults && pos.stepResults[mins];
+            const resBadge = res
+              ? `<div class="mt-0.5 text-[8px] font-extrabold px-1 rounded ${res.status === 'BERHASIL' ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'}">${res.status === 'BERHASIL' ? '✓ BERHASIL' : '✕ GAGAL'}</div>`
+              : `<div class="mt-0.5 text-[8px] text-slate-400">Aktif</div>`;
             steps.push(`
-              <div class="rounded-lg border px-1.5 py-1 text-center ${isUp ? 'bg-emerald-50/70 border-emerald-200/80' : 'bg-rose-50/70 border-rose-200/80'}">
+              <div class="rounded-lg border px-1.5 py-1 text-center ${res ? (res.status === 'BERHASIL' ? 'bg-emerald-50 border-emerald-300' : 'bg-rose-50 border-rose-300') : (isUp ? 'bg-emerald-50/70 border-emerald-200/80' : 'bg-rose-50/70 border-rose-200/80')}">
                 <div class="text-[9px] font-bold text-slate-500">${mins}m</div>
                 <div class="text-[10px] font-bold mono ${isUp ? 'text-emerald-700' : 'text-rose-700'}">${isUp ? '+' : ''}${projPct.toFixed(1)}%</div>
                 <div class="text-[9px] mono text-slate-500 truncate">${fmtUsd(projPrice)}</div>
+                ${resBadge}
               </div>
             `);
           }
+          const minEntries = Object.values(pos.minuteLogs || {}).sort((a, b) => a.min - b.min).slice(-10);
+          const minBadgesHtml = minEntries.length
+            ? minEntries.map(ml => `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold mono border ${ml.status === 'BERHASIL' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}">${ml.min}m: ${ml.status === 'BERHASIL' ? '✓' : '✕'} ${ml.actualPct >= 0 ? '+' : ''}${ml.actualPct}% (${ml.status})</span>`).join('')
+            : '<span class="text-[10px] text-slate-400">Menunggu menit ke-1 terlewati untuk evaluasi per menit...</span>';
+          const reAuditHtml = (pos.reAudits && pos.reAudits.length > 0)
+            ? `<div class="mt-2 p-2.5 rounded-xl bg-indigo-50/80 border border-indigo-200 text-[11px] text-slate-800 space-y-1">
+                <div class="font-bold text-indigo-800 flex items-center justify-between">
+                  <span>🔄 Audit Ulang Menyeluruh AI (Menit ke-${pos.reAudits[0].atMin} GAGAL &rarr; Prediksi Menit ke-${pos.reAudits[0].nextMin})</span>
+                  <span class="mono text-[10px] text-indigo-600">${pos.reAudits[0].ts}</span>
+                </div>
+                <div class="text-slate-700 leading-relaxed">${pos.reAudits[0].summary}</div>
+              </div>`
+            : '';
 
           const boughtTs = pos.boughtAt || pos.id || Date.now();
           const durText = formatHoldTimer(boughtTs);
@@ -2964,6 +3131,11 @@
               <div class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-12 gap-1.5">
                 ${steps.join('')}
               </div>
+              <div class="mt-2 flex flex-wrap items-center gap-1.5">
+                <span class="text-[10px] font-bold text-slate-600">Evaluasi Tiap Menit:</span>
+                ${minBadgesHtml}
+              </div>
+              ${reAuditHtml}
             </td>
           </tr>`;
         }).join('');
@@ -3088,6 +3260,7 @@
           tpPct: tp,
           slPct: sl
         });
+        initPredictionCheckpoints(paperState.open[0]);
         savePaper();
         renderPaper();
         e.target.reset();
@@ -3158,6 +3331,54 @@
     });
 
     document.getElementById('btnRefreshPaperPrices').addEventListener('click', () => refreshPaperPricesExplicit(false));
+
+    document.getElementById('btnBuyAllRadar')?.addEventListener('click', () => {
+      const chainFilter = document.getElementById('filterChain').value;
+      const existingCas = new Set(paperState.open.map(p => p.ca));
+      const candidates = allLivePairs
+        .map(scorePair)
+        .filter(x => (chainFilter === 'all' || x.chainId === chainFilter) && x.priceUsd > 0 && !existingCas.has(x.ca) && x.actionSignal !== 'Jangan Beli')
+        .sort((a, b) => b.bullScore - a.bullScore)
+        .slice(0, 20);
+
+      if (candidates.length === 0) {
+        showToast('Tidak ada koin baru di Radar untuk dibeli saat ini.', 'error');
+        return;
+      }
+      if (paperState.cashUsd < 10) {
+        showToast('Saldo virtual tidak cukup (minimal $10).', 'error');
+        return;
+      }
+      const perCoinUsd = Number(Math.min(100, Math.max(5, (paperState.cashUsd * 0.9) / candidates.length)).toFixed(2));
+      let bought = 0;
+      const nowTs = Date.now();
+      for (const c of candidates) {
+        if (paperState.cashUsd < perCoinUsd) break;
+        paperState.cashUsd -= perCoinUsd;
+        const pos = {
+          id: nowTs + bought,
+          ca: c.ca,
+          symbol: c.symbol,
+          iconUrl: c.iconUrl || '',
+          chainId: c.chainId,
+          amountUsd: perCoinUsd,
+          entryPrice: c.priceUsd,
+          currentPrice: c.priceUsd,
+          m5: c.m5,
+          buyRatio: c.buyRatio,
+          boughtAt: nowTs,
+          pairCreatedAt: c.pair?.pairCreatedAt || null,
+          tpPct: 0,
+          slPct: 0
+        };
+        initPredictionCheckpoints(pos);
+        paperState.open.unshift(pos);
+        bought++;
+      }
+      savePaper();
+      renderPaper();
+      showToast(`Berhasil membeli ${bought} koin Radar (@ $${perCoinUsd})! Evaluasi per menit & audit ulang 5m->10m aktif.`, 'success');
+    });
 
     document.getElementById('btnQuickPaperBuy').addEventListener('click', () => {
       if (currentToken && currentToken.ca) {
