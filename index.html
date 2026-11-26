@@ -116,6 +116,28 @@
         </div>
       </div>
 
+      <!-- Filter Anti-Wash Trading & Koin Baru -->
+      <div class="bg-white border border-slate-200/80 rounded-2xl px-4 py-3 shadow-sm flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-2 font-bold text-slate-800">
+          <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
+          <span>Filter Keamanan Radar:</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-3 text-slate-700">
+          <label class="flex items-center gap-1.5 cursor-pointer select-none">
+            <input id="fltHideWash" type="checkbox" class="accent-emerald-600 w-3.5 h-3.5" />
+            <span>Sembunyikan Indikasi Wash-Trade</span>
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer select-none">
+            <input id="fltOnlyOfficial" type="checkbox" class="accent-sky-600 w-3.5 h-3.5" />
+            <span>Hanya Koin Punya Akun Resmi</span>
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer select-none">
+            <input id="fltOnlyPump" type="checkbox" class="accent-violet-600 w-3.5 h-3.5" />
+            <span>Khusus Pump.fun / Baru (&le;24j)</span>
+          </label>
+        </div>
+      </div>
+
       <!-- BAGAN 1: 20 MEME COIN PREDIKSI NAIK -->
       <div id="secBullish" class="bg-white border border-slate-200/80 rounded-2xl shadow-sm overflow-hidden">
         <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 bg-gradient-to-r from-emerald-50/70 to-white">
@@ -368,6 +390,24 @@
                 <i data-lucide="external-link" class="w-3 h-3"></i>
               </a>
             </div>
+            <div id="onChainScanGrid" class="grid grid-cols-2 gap-2 text-[11px] mb-2">
+              <div class="bg-white border border-slate-200 rounded-lg p-2">
+                <div class="text-[10px] text-slate-400">Mint Authority</div>
+                <div id="ocMint" class="font-bold text-slate-700 mono mt-0.5">-</div>
+              </div>
+              <div class="bg-white border border-slate-200 rounded-lg p-2">
+                <div class="text-[10px] text-slate-400">Freeze / Honeypot</div>
+                <div id="ocFreeze" class="font-bold text-slate-700 mono mt-0.5">-</div>
+              </div>
+              <div class="bg-white border border-slate-200 rounded-lg p-2">
+                <div class="text-[10px] text-slate-400">LP Locked / Burned</div>
+                <div id="ocLpLock" class="font-bold text-slate-700 mono mt-0.5">-</div>
+              </div>
+              <div class="bg-white border border-slate-200 rounded-lg p-2">
+                <div class="text-[10px] text-slate-400">Top 10 Holders</div>
+                <div id="ocTop10" class="font-bold text-slate-700 mono mt-0.5">-</div>
+              </div>
+            </div>
             <div id="riskFlagsList" class="space-y-1.5 text-xs text-slate-500">-</div>
           </div>
         </div>
@@ -413,6 +453,11 @@
           <a id="linkArkham" href="https://intel.arkm.com/" target="_blank" rel="noopener noreferrer"
             class="px-3.5 py-2.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-800 font-medium text-xs flex items-center justify-between border border-sky-200 transition">
             <span>Lacak Smart Money (Arkham)</span>
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+          </a>
+          <a id="linkPumpFun" href="https://pump.fun/explore" target="_blank" rel="noopener noreferrer"
+            class="px-3.5 py-2.5 rounded-xl bg-lime-50 hover:bg-lime-100 text-lime-800 font-semibold text-xs flex items-center justify-between border border-lime-200 transition">
+            <span>Cek / Swap Pump.fun</span>
             <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
           </a>
           <button id="btnQuickPaperBuy" type="button"
@@ -485,6 +530,40 @@
           </div>
         </div>
 
+        <!-- Konverter Modal Indodax (IDR -> SOL -> Meme Coin) -->
+        <div class="bg-emerald-50/60 border border-emerald-200/80 rounded-xl p-3.5 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h4 class="text-xs font-bold text-slate-900">Kalkulator Konversi Indodax (IDR &rarr; <span class="unit-lbl">SOL</span> &rarr; Meme Coin)</h4>
+              <p class="text-[11px] text-slate-500">Hitung jumlah token &amp; estimasi cair kembali ke Rupiah setelah fee withdraw Indodax dan slippage.</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <div>
+              <label class="block text-[10px] text-slate-500 mb-1">Modal Rupiah (IDR)</label>
+              <input id="inpIdrBudget" type="number" step="50000" value="500000" min="10000"
+                class="w-full bg-white border border-emerald-200 rounded-lg px-2.5 py-1.5 text-xs mono text-slate-900" />
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-500 mb-1">Fee Withdraw Indodax (<span class="unit-lbl">SOL</span>)</label>
+              <input id="inpWdFeeSol" type="number" step="0.001" value="0.01" min="0"
+                class="w-full bg-white border border-emerald-200 rounded-lg px-2.5 py-1.5 text-xs mono text-slate-900" />
+            </div>
+            <div class="bg-white border border-emerald-200/70 rounded-lg p-2">
+              <div class="text-[10px] text-slate-500">Bersih di Phantom</div>
+              <div id="outIndodaxNetSol" class="text-xs font-bold text-slate-900 mono mt-0.5">-</div>
+            </div>
+            <div class="bg-white border border-emerald-200/70 rounded-lg p-2">
+              <div class="text-[10px] text-slate-500">Estimasi Dapat Token</div>
+              <div id="outIndodaxTokens" class="text-xs font-bold text-emerald-700 mono mt-0.5">-</div>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] bg-white border border-emerald-200/70 rounded-lg px-3 py-2">
+            <span class="text-slate-600">Estimasi Cair ke Indodax saat Target TP:</span>
+            <span id="outIndodaxTpIdr" class="font-bold text-emerald-700 mono">-</span>
+          </div>
+        </div>
+
         <div class="relative h-48 bg-slate-50 border border-slate-200 rounded-xl p-3">
           <canvas id="riskChart"></canvas>
         </div>
@@ -512,6 +591,9 @@
           <div class="flex items-center gap-2">
             <label class="text-xs text-slate-500">Batas Rugi (<span class="unit-lbl">SOL</span>):</label>
             <input id="inpDailyMaxLoss" type="number" step="0.05" value="0.30" min="0.05" class="w-20 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs mono text-slate-900" />
+            <button id="btnQuickExportCsv" type="button" class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 text-xs font-semibold transition">
+              Export CSV
+            </button>
           </div>
         </div>
 
@@ -733,6 +815,29 @@
           Simpan Pengaturan &amp; Terapkan ke Radar
         </button>
       </div>
+
+      <!-- Backup, Export & Restore Data -->
+      <div class="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+        <div>
+          <h2 class="text-sm sm:text-base font-bold text-slate-900">Backup, Export &amp; Restore Data</h2>
+          <p class="text-xs text-slate-500">Simpan cadangan <strong>Jurnal</strong>, <strong>Favorit &amp; Alert</strong>, <strong>Paper Trading</strong>, dan <strong>Pengaturan</strong> agar aman saat pindah browser atau perangkat.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2.5">
+          <button id="btnExportJson" type="button" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold flex items-center gap-1.5 transition">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            <span>Export Full Backup (.json)</span>
+          </button>
+          <button id="btnExportCsv" type="button" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 transition">
+            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
+            <span>Export Jurnal (.csv)</span>
+          </button>
+          <label class="px-4 py-2 rounded-xl bg-sky-50 hover:bg-sky-100 border border-sky-200 text-sky-800 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition">
+            <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+            <span>Import / Restore (.json)</span>
+            <input id="inpImportJson" type="file" accept=".json,application/json" class="hidden" />
+          </label>
+        </div>
+      </div>
     </section>
 
     <!-- VIEW 6: TRAKTIR / SUPPORT -->
@@ -926,6 +1031,33 @@
             <div><div class="font-bold text-indigo-900">Forum GitHub Discussions</div><div class="text-[11px] text-indigo-700">Diskusi resmi pengguna website ini</div></div>
             <i data-lucide="external-link" class="w-4 h-4 text-indigo-700"></i>
           </a>
+        </div>
+
+        <!-- Launchpad, Terminal & Audit Koin Terbaru -->
+        <div class="pt-2 border-t border-slate-100 space-y-2.5">
+          <div class="text-xs font-bold text-slate-800">Terminal, Launchpad &amp; Audit Koin Terbaru</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
+            <a href="https://pump.fun/explore" target="_blank" rel="noopener noreferrer" class="p-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 flex items-center justify-between transition">
+              <div><div class="font-bold text-emerald-900">Pump.fun Explore</div><div class="text-[11px] text-emerald-700">Peluncuran meme coin Solana detik ke-0</div></div>
+              <i data-lucide="external-link" class="w-4 h-4 text-emerald-700"></i>
+            </a>
+            <a href="https://dexscreener.com/new-pairs" target="_blank" rel="noopener noreferrer" class="p-3 rounded-xl bg-sky-50 hover:bg-sky-100 border border-sky-200 flex items-center justify-between transition">
+              <div><div class="font-bold text-sky-900">DEX Screener New Pairs</div><div class="text-[11px] text-sky-700">Pantau pool likuiditas baru multi-chain</div></div>
+              <i data-lucide="external-link" class="w-4 h-4 text-sky-700"></i>
+            </a>
+            <a href="https://jup.ag/swap" target="_blank" rel="noopener noreferrer" class="p-3 rounded-xl bg-teal-50 hover:bg-teal-100 border border-teal-200 flex items-center justify-between transition">
+              <div><div class="font-bold text-teal-900">Jupiter Swap</div><div class="text-[11px] text-teal-700">Eksekusi swap Solana rute terbaik</div></div>
+              <i data-lucide="external-link" class="w-4 h-4 text-teal-700"></i>
+            </a>
+            <a href="https://rugcheck.xyz/" target="_blank" rel="noopener noreferrer" class="p-3 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 flex items-center justify-between transition">
+              <div><div class="font-bold text-amber-900">RugCheck</div><div class="text-[11px] text-amber-700">Cek keamanan kontrak &amp; mint authority</div></div>
+              <i data-lucide="external-link" class="w-4 h-4 text-amber-700"></i>
+            </a>
+            <a href="https://bubblemaps.io/" target="_blank" rel="noopener noreferrer" class="p-3 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 flex items-center justify-between transition">
+              <div><div class="font-bold text-purple-900">Bubblemaps</div><div class="text-[11px] text-purple-700">Visualisasi klaster &amp; konsentrasi holder</div></div>
+              <i data-lucide="external-link" class="w-4 h-4 text-purple-700"></i>
+            </a>
+          </div>
         </div>
       </div>
 
@@ -1390,6 +1522,9 @@
         signalDirClass = 'text-rose-700';
       }
 
+      const volLiqRatio = liq > 0 ? vol / liq : 0;
+      const isWashTrade = (volLiqRatio > 8 && liq < 50000) || (buys + sells >= 20 && (buyRatio >= 92 || buyRatio <= 8) && liq < 25000);
+      const isPumpFun = ((p.baseToken?.address || '').toLowerCase().endsWith('pump')) || ((p.dexId || '').toLowerCase().includes('pump'));
       const iconUrl = (p.info && p.info.imageUrl) ? p.info.imageUrl : '';
       return {
         pair: p,
@@ -1408,8 +1543,38 @@
         cred, hasOfficial, websites, socials, ageHours,
         minProj, hrProj, dayProj, moProj,
         confidence, confPct, actionSignal, actionClass, actionReason, signalDir, signalDirClass,
-        bullScore, bearScore, rugScore, dropReasons, rugReasons, riskReasons
+        bullScore, bearScore, rugScore, dropReasons, rugReasons, riskReasons, volLiqRatio, isWashTrade, isPumpFun
       };
+    }
+
+    function formatCoinAge(ageHours) {
+      if (ageHours === null || ageHours === undefined || isNaN(ageHours)) return '-';
+      if (ageHours < 1) return `${Math.max(1, Math.round(ageHours * 60))} mnt`;
+      if (ageHours < 24) {
+        const j = Math.floor(ageHours);
+        const m = Math.round((ageHours - j) * 60);
+        return m > 0 ? `${j}j ${m}m` : `${j} jam`;
+      }
+      if (ageHours < 24 * 30) {
+        const d = Math.floor(ageHours / 24);
+        const j = Math.round(ageHours % 24);
+        return j > 0 ? `${d} hr ${j}j` : `${d} hari`;
+      }
+      const bln = Math.floor(ageHours / (24 * 30));
+      return `${bln} bln`;
+    }
+
+    function formatHoldTimer(startMs) {
+      const diffSec = Math.max(0, Math.floor((Date.now() - (startMs || Date.now())) / 1000));
+      const h = Math.floor(diffSec / 3600);
+      const m = Math.floor((diffSec % 3600) / 60);
+      const s = diffSec % 60;
+      const pad = n => String(n).padStart(2, '0');
+      if (h >= 24) {
+        const d = Math.floor(h / 24);
+        return `${d}h ${pad(h % 24)}:${pad(m)}:${pad(s)}`;
+      }
+      return h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
     }
 
     function renderCoinRow(item, mode) {
@@ -1430,10 +1595,13 @@
                 <span class="text-sm font-bold text-slate-900">${item.symbol}</span>
                 <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold border ${item.actionClass}">${item.actionSignal}</span>
                 <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-slate-100 text-slate-600 border border-slate-200">${item.chainId}</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 text-slate-700 border border-slate-200">⏳ Umur: ${formatCoinAge(item.ageHours)}</span>
                 <span class="px-1.5 py-0.5 rounded text-[9px] font-bold border ${badgeColor}">Kredibilitas ${item.cred}%</span>
                 <span class="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">Conf: ${item.confidence} (${item.confPct}%)</span>
                 <span class="text-[10px] font-bold mono ${item.signalDirClass}">Arah: ${item.signalDir}</span>
                 ${item.hasOfficial ? `<span class="text-[10px] text-sky-600 font-medium">✓ ${socialCount} Akun Resmi</span>` : `<span class="text-[10px] text-rose-500 font-medium">⚠ Anonim</span>`}
+                ${item.isPumpFun ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-lime-50 text-lime-700 border border-lime-200">🚀 Pump.fun</span>` : ''}
+                ${item.isWashTrade ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-50 text-rose-700 border border-rose-200">⚠ Wash-Trade</span>` : ''}
               </div>
               <div class="text-[11px] text-slate-500 mt-1 flex flex-wrap gap-x-3 gap-y-0.5 mono">
                 <span>Harga: ${fmtUsd(item.priceUsd)}</span>
@@ -1473,9 +1641,15 @@
 
     function renderAllBoards() {
       const chainFilter = document.getElementById('filterChain').value;
+      const hideWash = document.getElementById('fltHideWash')?.checked;
+      const onlyOfficial = document.getElementById('fltOnlyOfficial')?.checked;
+      const onlyPump = document.getElementById('fltOnlyPump')?.checked;
       const filtered = allLivePairs
         .map(scorePair)
-        .filter(item => chainFilter === 'all' || item.chainId === chainFilter);
+        .filter(item => chainFilter === 'all' || item.chainId === chainFilter)
+        .filter(item => !hideWash || !item.isWashTrade)
+        .filter(item => !onlyOfficial || item.hasOfficial)
+        .filter(item => !onlyPump || (item.isPumpFun || item.ageHours <= 24));
 
       // Bagan 1: Top 20 Bullish
       const minLiqFilter = Number(userSettings.minLiq) || 2000;
@@ -1582,7 +1756,7 @@
       if (logRows.length > 0) {
         document.getElementById('auditLogTableBody').innerHTML = logRows.slice(-20).reverse().join('');
       }
-      const metaMap = new Map(filtered.map(x => [x.ca, { m5: x.m5, buyRatio: x.buyRatio }]));
+      const metaMap = new Map(filtered.map(x => [x.ca, { m5: x.m5, buyRatio: x.buyRatio, pairCreatedAt: x.pair?.pairCreatedAt || null }]));
       syncPaperWithLivePrices(priceMap, metaMap);
       checkPriceAlerts(priceMap);
       renderFavorit();
@@ -1774,15 +1948,33 @@
         let riskFlags = [];
         let mintRevoked = true;
         let freezeRevoked = true;
+        let lpLockedPct = null;
+        let top10Pct = null;
+        let buyTaxPct = null;
+        let sellTaxPct = null;
 
         if (chainId === 'solana') {
           try {
-            const rugRes = await fetch(`https://api.rugcheck.xyz/v1/tokens/${encodeURIComponent(ca)}/report/summary`);
-            if (rugRes.ok) {
-              const rj = await rugRes.json();
-              riskFlags = (rj.risks || []).slice(0, 5);
-              mintRevoked = !riskFlags.some(r => (r.name || '').toLowerCase().includes('mint'));
-              freezeRevoked = !riskFlags.some(r => (r.name || '').toLowerCase().includes('freeze'));
+            let rj = null;
+            const fullRes = await fetch(`https://api.rugcheck.xyz/v1/tokens/${encodeURIComponent(ca)}/report`);
+            if (fullRes.ok) {
+              rj = await fullRes.json();
+            } else {
+              const sumRes = await fetch(`https://api.rugcheck.xyz/v1/tokens/${encodeURIComponent(ca)}/report/summary`);
+              if (sumRes.ok) rj = await sumRes.json();
+            }
+            if (rj) {
+              riskFlags = (rj.risks || []).slice(0, 6);
+              mintRevoked = rj.mintAuthority === null || !riskFlags.some(r => (r.name || '').toLowerCase().includes('mint'));
+              freezeRevoked = rj.freezeAuthority === null || !riskFlags.some(r => (r.name || '').toLowerCase().includes('freeze'));
+              if (Array.isArray(rj.markets) && rj.markets.length > 0) {
+                const maxLock = Math.max(...rj.markets.map(m => Number((m.lp && m.lp.lpLockedPct) || 0)));
+                if (maxLock > 0) lpLockedPct = Number(maxLock.toFixed(1));
+              }
+              if (Array.isArray(rj.topHolders) && rj.topHolders.length > 0) {
+                const sumTop = rj.topHolders.slice(0, 10).reduce((s, h) => s + Number(h.pct || 0), 0);
+                if (sumTop > 0) top10Pct = Number(sumTop.toFixed(1));
+              }
             }
           } catch (e) {}
         } else if (EVM_CHAIN_IDS[chainId]) {
@@ -1792,10 +1984,19 @@
               const gp = await gpRes.json();
               const info = gp.result && gp.result[ca.toLowerCase()];
               if (info) {
-                if (info.is_honeypot === '1') { mintRevoked = false; riskFlags.push({ name: 'Honeypot Terdeteksi', level: 'danger' }); }
+                if (info.is_honeypot === '1') { freezeRevoked = false; riskFlags.push({ name: 'Honeypot Terdeteksi', level: 'danger' }); }
                 if (info.is_mintable === '1') { mintRevoked = false; riskFlags.push({ name: 'Mintable Contract', level: 'danger' }); }
-                const sTax = Number(info.sell_tax || 0) * 100;
-                if (sTax > 10) { freezeRevoked = false; riskFlags.push({ name: `Pajak Jual ${sTax.toFixed(1)}%`, level: 'warn' }); }
+                buyTaxPct = Number((Number(info.buy_tax || 0) * 100).toFixed(1));
+                sellTaxPct = Number((Number(info.sell_tax || 0) * 100).toFixed(1));
+                if (sellTaxPct > 10) { freezeRevoked = false; riskFlags.push({ name: `Pajak Jual ${sellTaxPct}%`, level: 'warn' }); }
+                if (Array.isArray(info.lp_holders) && info.lp_holders.length > 0) {
+                  const locked = info.lp_holders.filter(h => Number(h.is_locked) === 1).reduce((s, h) => s + Number(h.percent || 0) * 100, 0);
+                  lpLockedPct = Number(Math.min(100, locked).toFixed(1));
+                }
+                if (Array.isArray(info.holders) && info.holders.length > 0) {
+                  const sumTop = info.holders.slice(0, 10).reduce((s, h) => s + Number(h.percent || 0) * 100, 0);
+                  top10Pct = Number(Math.min(100, sumTop).toFixed(1));
+                }
               }
             }
           } catch (e) {}
@@ -1805,7 +2006,7 @@
         let finalScore = scored.cred;
         if (!mintRevoked || !freezeRevoked) finalScore = Math.min(finalScore, 30);
 
-        currentToken = { ...scored, riskFlags, mintRevoked, freezeRevoked, finalScore };
+        currentToken = { ...scored, riskFlags, mintRevoked, freezeRevoked, lpLockedPct, top10Pct, buyTaxPct, sellTaxPct, finalScore };
         renderAuditDetail(currentToken);
         setActiveNav('navAudit', 'audit');
       } catch (e) {
@@ -1900,6 +2101,24 @@
         ? badges.join('')
         : `<span class="text-rose-600 font-medium">⚠️ Tidak ada domain website atau akun resmi konkret (Anonim / Hanya Link Umum)</span>`;
 
+      const ocMintEl = document.getElementById('ocMint');
+      const ocFreezeEl = document.getElementById('ocFreeze');
+      const ocLpEl = document.getElementById('ocLpLock');
+      const ocTop10El = document.getElementById('ocTop10');
+      if (ocMintEl) {
+        ocMintEl.textContent = t.mintRevoked ? '✅ Revoked' : '🚨 Aktif (Bisa Mint)';
+        ocMintEl.className = `font-bold mono mt-0.5 ${t.mintRevoked ? 'text-emerald-700' : 'text-rose-700'}`;
+        ocFreezeEl.textContent = t.freezeRevoked ? '✅ Aman' : '🚨 Bahaya / Honeypot';
+        ocFreezeEl.className = `font-bold mono mt-0.5 ${t.freezeRevoked ? 'text-emerald-700' : 'text-rose-700'}`;
+        ocLpEl.textContent = t.lpLockedPct !== null && t.lpLockedPct !== undefined
+          ? (t.lpLockedPct >= 80 ? `🔒 ${t.lpLockedPct}%` : `⚠️ ${t.lpLockedPct}%`)
+          : 'ℹ️ Cek Explorer';
+        ocLpEl.className = `font-bold mono mt-0.5 ${t.lpLockedPct >= 80 ? 'text-emerald-700' : (t.lpLockedPct !== null && t.lpLockedPct !== undefined ? 'text-amber-700' : 'text-slate-600')}`;
+        ocTop10El.textContent = t.top10Pct !== null && t.top10Pct !== undefined
+          ? (t.top10Pct > 40 ? `🚨 ${t.top10Pct}% (Padat)` : `👥 ${t.top10Pct}%`)
+          : 'ℹ️ Cek Bubblemaps';
+        ocTop10El.className = `font-bold mono mt-0.5 ${t.top10Pct > 40 ? 'text-rose-700' : (t.top10Pct !== null && t.top10Pct !== undefined ? 'text-emerald-700' : 'text-slate-600')}`;
+      }
       const riskList = document.getElementById('riskFlagsList');
       riskList.innerHTML = t.riskFlags.length
         ? t.riskFlags.map(f => `<div class="px-2.5 py-1.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700">${f.name}</div>`).join('')
@@ -1913,6 +2132,11 @@
       const bMapChain = { solana: 'sol', ethereum: 'eth', bsc: 'bsc', base: 'base', arbitrum: 'arbi', polygon: 'poly' };
       document.getElementById('linkBubblemaps').href = `https://app.bubblemaps.io/${bMapChain[t.chainId] || 'sol'}/token/${safeCa}`;
       document.getElementById('linkArkham').href = `https://intel.arkm.com/explorer/token/${safeCa}`;
+      const pumpBtn = document.getElementById('linkPumpFun');
+      if (pumpBtn) {
+        pumpBtn.href = t.chainId === 'solana' ? `https://pump.fun/coin/${safeCa}` : `https://pump.fun/explore`;
+      }
+      updateSizer();
 
       if (t.chainId === 'solana') {
         document.getElementById('linkJupiter').href = `https://jup.ag/swap/SOL-${safeCa}`;
@@ -2650,6 +2874,7 @@
         if (meta) {
           pos.m5 = meta.m5;
           pos.buyRatio = meta.buyRatio;
+          if (meta.pairCreatedAt) pos.pairCreatedAt = meta.pairCreatedAt;
         }
         const pct = pos.entryPrice > 0 ? ((pos.currentPrice - pos.entryPrice) / pos.entryPrice) * 100 : 0;
         const hitTp = pos.tpPct > 0 && pct >= pos.tpPct;
@@ -2715,12 +2940,14 @@
             `);
           }
 
-          const elapsedMins = Math.max(0, Math.floor((Date.now() - (pos.boughtAt || pos.id || Date.now())) / 60000));
-          const durText = elapsedMins < 60 ? `${elapsedMins} mnt` : `${Math.floor(elapsedMins / 60)}j ${elapsedMins % 60}m`;
+          const boughtTs = pos.boughtAt || pos.id || Date.now();
+          const durText = formatHoldTimer(boughtTs);
+          const coinAgeHrs = pos.pairCreatedAt ? Math.max(0.01, (Date.now() - pos.pairCreatedAt) / 3600000) : null;
+          const coinAgeText = coinAgeHrs !== null ? formatCoinAge(coinAgeHrs) : '-';
           const bTp = pos.estBuyerTp || (pos.entryPrice * 1.2);
           const sSl = pos.estSellerSl || (pos.entryPrice * 0.85);
           return `<tr>
-            <td class="px-3 py-2 font-bold text-slate-900"><button type="button" data-paper-ca="${pos.ca}" class="btn-paper-profile flex items-center gap-2 text-left text-indigo-700 hover:underline">${coinIconHtml(pos.iconUrl, pos.symbol, 'w-6 h-6')}<div><div>${pos.symbol} <span class="text-[9px] text-slate-400 uppercase">${pos.chainId}</span></div><div class="text-[10px] mono text-slate-500 font-normal">⏱ ${durText}</div></div></button></td>
+            <td class="px-3 py-2 font-bold text-slate-900"><button type="button" data-paper-ca="${pos.ca}" class="btn-paper-profile flex items-center gap-2 text-left text-indigo-700 hover:underline">${coinIconHtml(pos.iconUrl, pos.symbol, 'w-6 h-6')}<div><div>${pos.symbol} <span class="text-[9px] text-slate-400 uppercase">${pos.chainId}</span></div><div class="flex flex-wrap items-center gap-1.5 mt-0.5 text-[10px] mono font-normal"><span class="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 font-semibold paper-live-timer" data-bought-at="${boughtTs}">⏱ Aktif: ${durText}</span><span class="text-slate-500">⏳ Umur: ${coinAgeText}</span></div></div></button></td>
             <td class="px-3 py-2 mono">$${pos.amountUsd.toFixed(2)}</td>
             <td class="px-3 py-2 mono text-[11px]"><div class="text-slate-500">${fmtUsd(pos.entryPrice)}</div><div class="text-slate-900 font-bold">${fmtUsd(pos.currentPrice)}</div></td>
             <td class="px-3 py-2 mono text-[11px]">${pos.tpPct > 0 ? `<span class="text-emerald-600">+${pos.tpPct}%</span>` : '<span class="text-slate-400">Off</span>'} / ${pos.slPct > 0 ? `<span class="text-rose-600">-${pos.slPct}%</span>` : '<span class="text-slate-400">Off</span>'}</td>
@@ -2796,7 +3023,8 @@
                 buyVal5m: sc.buyVal5m,
                 sellVal5m: sc.sellVal5m,
                 netFlow5m: sc.netFlow5m,
-                vol5m: sc.vol5m
+                vol5m: sc.vol5m,
+                pairCreatedAt: pair.pairCreatedAt || null
               });
             }
           }
@@ -2855,6 +3083,8 @@
           currentPrice: price,
           m5: Number(pair.priceChange?.m5 || 0),
           buyRatio: brInit,
+          boughtAt: Date.now(),
+          pairCreatedAt: pair.pairCreatedAt || null,
           tpPct: tp,
           slPct: sl
         });
@@ -2999,6 +3229,100 @@
       fetchLiveRadar();
       setupAutoRefresh();
     });
+
+    // --- Filter Anti-Wash Trade Listeners ---
+    ['fltHideWash', 'fltOnlyOfficial', 'fltOnlyPump'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('change', renderAllBoards);
+    });
+    ['inpIdrBudget', 'inpWdFeeSol'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', updateSizer);
+    });
+
+    // --- Backup, Export (JSON/CSV) & Restore ---
+    function downloadTextFile(filename, content, mime) {
+      const blob = new Blob([content], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function exportJournalCsv() {
+      const header = ['Waktu', 'Token', 'Masuk', 'Keluar', 'PnL', 'Catatan'];
+      const rows = trades.map(tr => {
+        const pnl = (Number(tr.exitSol || 0) - Number(tr.entrySol || 0)).toFixed(4);
+        const esc = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+        return [esc(tr.time), esc(tr.token), tr.entrySol, tr.exitSol, pnl, esc(tr.note)].join(',');
+      });
+      const csv = '\uFEFF' + [header.join(','), ...rows].join('\n');
+      const d = new Date().toISOString().slice(0, 10);
+      downloadTextFile(`jurnal-meme-coin-${d}.csv`, csv, 'text/csv;charset=utf-8;');
+      showToast('Jurnal berhasil di-export ke CSV!', 'success');
+    }
+
+    document.getElementById('btnExportCsv')?.addEventListener('click', exportJournalCsv);
+    document.getElementById('btnQuickExportCsv')?.addEventListener('click', exportJournalCsv);
+
+    document.getElementById('btnExportJson')?.addEventListener('click', () => {
+      const payload = {
+        app: 'Meme Coin Radar Live',
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        userId: ACTIVE_UID,
+        trades,
+        favorites,
+        priceAlerts,
+        paperState,
+        userSettings
+      };
+      const d = new Date().toISOString().slice(0, 10);
+      downloadTextFile(`meme-radar-backup-${d}.json`, JSON.stringify(payload, null, 2), 'application/json');
+      showToast('Backup penuh (.json) berhasil diunduh!', 'success');
+    });
+
+    document.getElementById('inpImportJson')?.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(String(reader.result || '{}'));
+          if (Array.isArray(data.trades)) { trades = data.trades; saveTrades(); }
+          if (Array.isArray(data.favorites)) { favorites = data.favorites; saveFavs(); }
+          if (data.priceAlerts && typeof data.priceAlerts === 'object') { priceAlerts = data.priceAlerts; saveAlerts(); }
+          if (data.paperState && typeof data.paperState === 'object') { paperState = data.paperState; savePaper(); }
+          if (data.userSettings && typeof data.userSettings === 'object') {
+            userSettings = { ...userSettings, ...data.userSettings };
+            try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(userSettings)); } catch (err) {}
+          }
+          syncSettingsUI();
+          renderJournal();
+          renderFavorit();
+          renderPaper();
+          renderAllBoards();
+          showToast('Data backup berhasil di-restore!', 'success');
+        } catch (err) {
+          showToast('File backup JSON tidak valid.', 'error');
+        } finally {
+          e.target.value = '';
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    // --- Live 1s Holding Timer for Paper Trading ---
+    setInterval(() => {
+      document.querySelectorAll('.paper-live-timer').forEach(el => {
+        const ts = Number(el.getAttribute('data-bought-at'));
+        if (ts > 0) el.textContent = `⏱ Aktif: ${formatHoldTimer(ts)}`;
+      });
+    }, 1000);
   </script>
 </body>
 </html>
