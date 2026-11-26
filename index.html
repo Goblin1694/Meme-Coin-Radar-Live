@@ -516,7 +516,10 @@
         </div>
 
         <form id="formAddTrade" class="grid grid-cols-1 sm:grid-cols-5 gap-2.5">
-          <input id="jToken" type="text" placeholder="Nama Token" required class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900" />
+          <div class="relative">
+            <input id="jToken" type="text" autocomplete="off" placeholder="Ketik Nama Koin..." required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none focus:border-emerald-500" />
+            <div id="jTokenDropdown" class="hidden absolute left-0 right-0 top-full mt-1 z-50 bg-white border border-slate-200 rounded-xl shadow-lg max-h-56 overflow-y-auto divide-y divide-slate-100"></div>
+          </div>
           <input id="jEntrySol" type="number" step="0.01" placeholder="Modal Masuk" required class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs mono text-slate-900" />
           <input id="jExitSol" type="number" step="0.01" placeholder="Hasil Keluar" required class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs mono text-slate-900" />
           <input id="jNote" type="text" placeholder="Catatan" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900" />
@@ -2170,6 +2173,84 @@
       document.getElementById(id).addEventListener('input', () => { updateSizer(); renderJournal(); });
     });
     document.getElementById('inpDailyMaxLoss').addEventListener('input', renderJournal);
+
+    let jSearchTimer = null;
+    function renderJournalSuggestions(pairs) {
+      const dd = document.getElementById('jTokenDropdown');
+      if (!pairs || pairs.length === 0) { dd.classList.add('hidden'); return; }
+      dd.innerHTML = pairs.slice(0, 12).map(p => {
+        const sym = p.baseToken?.symbol || 'TOKEN';
+        const nm = p.baseToken?.name || '';
+        const ch = (p.chainId || 'solana').toUpperCase();
+        const addr = p.baseToken?.address || '';
+        const shortCa = addr.length > 10 ? `${addr.slice(0, 4)}..${addr.slice(-4)}` : addr;
+        const imgUrl = (p.info && p.info.imageUrl) ? p.info.imageUrl : '';
+        const iconHtml = imgUrl
+          ? `<img src="${imgUrl}" alt="${sym}" class="w-6 h-6 rounded-full object-cover border border-slate-200 shrink-0" onerror="this.style.display='none'" />`
+          : `<div class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 font-bold text-[9px] flex items-center justify-center shrink-0">${sym.slice(0, 2).toUpperCase()}</div>`;
+        return `<button type="button" data-j-label="${sym} (${ch})" data-j-ca="${shortCa}" class="j-pick-btn w-full text-left px-3 py-2 hover:bg-emerald-50 flex items-center justify-between gap-2 transition">
+          <div class="flex items-center gap-2 min-w-0">
+            ${iconHtml}
+            <div class="min-w-0">
+              <div class="text-xs font-bold text-slate-900 truncate">${sym} <span class="font-normal text-slate-500">${nm}</span></div>
+              <div class="text-[10px] mono text-slate-400">${ch} · ${shortCa}</div>
+            </div>
+          </div>
+          <span class="text-[10px] mono font-semibold text-slate-600 shrink-0">${fmtUsd(Number(p.priceUsd || 0))}</span>
+        </button>`;
+      }).join('');
+      dd.classList.remove('hidden');
+    }
+
+    document.getElementById('jToken').addEventListener('input', (e) => {
+      const q = e.target.value.trim();
+      const dd = document.getElementById('jTokenDropdown');
+      if (q.length < 2) { dd.classList.add('hidden'); return; }
+
+      const localMatches = allLivePairs.filter(p => {
+        const s = (p.baseToken?.symbol || '').toLowerCase();
+        const n = (p.baseToken?.name || '').toLowerCase();
+        return s.includes(q.toLowerCase()) || n.includes(q.toLowerCase());
+      });
+      if (localMatches.length > 0) renderJournalSuggestions(localMatches);
+
+      if (jSearchTimer) clearTimeout(jSearchTimer);
+      jSearchTimer = setTimeout(async () => {
+        try {
+          const res = await fetch(`https://api.dexscreener.com/latest/dex/search?q=${encodeURIComponent(q)}`);
+          if (!res.ok) return;
+          const json = await res.json();
+          const byTok = new Map();
+          for (const p of (json.pairs || [])) {
+            const addr = p.baseToken?.address;
+            if (!addr) continue;
+            const k = `${(p.chainId || '').toLowerCase()}:${addr}`;
+            const prev = byTok.get(k);
+            if (!prev || Number(p.liquidity?.usd || 0) > Number(prev.liquidity?.usd || 0)) byTok.set(k, p);
+          }
+          const sorted = Array.from(byTok.values()).sort((a, b) => Number(b.liquidity?.usd || 0) - Number(a.liquidity?.usd || 0));
+          if (sorted.length > 0) renderJournalSuggestions(sorted);
+        } catch (err) {}
+      }, 350);
+    });
+
+    document.getElementById('jTokenDropdown').addEventListener('click', (e) => {
+      const btn = e.target.closest('.j-pick-btn');
+      if (!btn) return;
+      document.getElementById('jToken').value = btn.getAttribute('data-j-label');
+      const noteEl = document.getElementById('jNote');
+      if (noteEl && !noteEl.value.trim()) {
+        noteEl.value = `CA: ${btn.getAttribute('data-j-ca')}`;
+      }
+      document.getElementById('jTokenDropdown').classList.add('hidden');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#jToken') && !e.target.closest('#jTokenDropdown')) {
+        const dd = document.getElementById('jTokenDropdown');
+        if (dd) dd.classList.add('hidden');
+      }
+    });
 
     document.getElementById('formAddTrade').addEventListener('submit', (e) => {
       e.preventDefault();
