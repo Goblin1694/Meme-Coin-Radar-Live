@@ -117,6 +117,7 @@
           <a href="#secNewCredible" class="px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 font-semibold hover:bg-sky-100 transition">Baru (20)</a>
           <a href="#secBearish" class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 font-semibold hover:bg-amber-100 transition">Turun</a>
           <a href="#secScamRug" class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 font-semibold hover:bg-rose-100 transition">Scam / Rug</a>
+          <a href="#secFloating" class="px-2.5 py-1 rounded-lg bg-violet-50 text-violet-700 font-semibold hover:bg-violet-100 transition">Mengambang</a>
         </div>
       </div>
 
@@ -168,7 +169,7 @@
               <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-700">TOP 20 BARU KREDIBEL</span>
               <h2 class="text-sm sm:text-base font-bold text-slate-900">Meme Coin Terbaru · Peringkat Kredibilitas &amp; Potensi Naik</h2>
             </div>
-            <p class="text-xs text-slate-500 mt-0.5">Koin baru rilis yang memiliki website/akun resmi, likuiditas layak, &amp; proyeksi naik.</p>
+            <p class="text-xs text-slate-500 mt-0.5">Khusus koin berumur maksimal 1 minggu (&le; 7 hari), diurutkan dari yang paling terbaru hingga lebih lama.</p>
           </div>
           <span id="countNew" class="text-xs font-semibold mono text-sky-700 bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-200">0 koin</span>
         </div>
@@ -211,6 +212,24 @@
 
         <div id="gridScamRug" class="divide-y divide-slate-100">
           <div class="p-6 text-center text-xs text-slate-400">Memindai koin indikasi scam &amp; mendekati rug...</div>
+        </div>
+      </div>
+
+      <!-- BAGAN 4 (PALING BAWAH): MENGAMBANG (KUMPULAN KOIN TANPA BATAS) -->
+      <div id="secFloating" class="bg-white border border-slate-200/80 rounded-2xl shadow-sm overflow-hidden">
+        <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 bg-gradient-to-r from-violet-50/80 to-white">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-100 text-violet-700">MENGAMBANG · TANPA BATAS</span>
+              <h2 class="text-sm sm:text-base font-bold text-slate-900">Koin Mengambang (Potensi Chart Naik, Konsolidasi &amp; Pantauan Lainnya)</h2>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">Kumpulan seluruh koin live tanpa batas jumlah—diurutkan dari yang berpotensi chart akan naik, fase konsolidasi, hingga pantauan campuran.</p>
+          </div>
+          <span id="countFloating" class="text-xs font-semibold mono text-violet-700 bg-violet-50 px-2.5 py-1 rounded-lg border border-violet-200">0 koin</span>
+        </div>
+
+        <div id="gridFloating" class="divide-y divide-slate-100">
+          <div class="p-6 text-center text-xs text-slate-400">Mengumpulkan daftar koin mengambang secara live...</div>
         </div>
       </div>
 
@@ -718,7 +737,7 @@
             <label class="block text-xs font-semibold text-slate-700 mb-1">Pilih Provider AI</label>
             <select id="cfgAiProvider" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 outline-none">
               <optgroup label="Gratis Siap Pakai (Tanpa API Key)">
-                <option value="gemini-default">AI Gemini (Default Bawaan · Gratis Tanpa API Key)</option>
+                <option value="gemini-default">Gemini AI Free (Default Bawaan · Gratis Tanpa API Key)</option>
                 <option value="pollinations-free">Pollinations AI (Gratis · Tanpa API Key)</option>
               </optgroup>
               <optgroup label="Provider AI dengan API Key">
@@ -1157,6 +1176,15 @@
       <div>
         <div class="text-xs font-bold text-slate-900">Scam &amp; Mendekati Rug</div>
         <div class="text-[11px] text-slate-500">Anonim, likuiditas tipis/ditarik, atau dump</div>
+      </div>
+    </button>
+    <button id="popFloating" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-violet-50 text-left transition">
+      <div class="w-8 h-8 rounded-lg bg-violet-100 text-violet-700 flex items-center justify-center shrink-0">
+        <i data-lucide="layers" class="w-4 h-4"></i>
+      </div>
+      <div>
+        <div class="text-xs font-bold text-slate-900">Mengambang (Semua Koin)</div>
+        <div class="text-[11px] text-slate-500">Kumpulan banyak koin tanpa batas · potensi chart naik &amp; lainnya</div>
       </div>
     </button>
   </div>
@@ -1872,30 +1900,35 @@
         .filter(item => !onlyOfficial || item.hasOfficial)
         .filter(item => !onlyPump || (item.isPumpFun || item.ageHours <= 24));
 
-      // Bagan 1: Top 20 Bullish (auto-relax if strict filter yields 0 while pairs exist)
+      // Bagan 1: Top 20 Bullish — STRICTLY exclude 'Jangan Beli' & 'Tidak Yakin' (only Multi-AI Beli / Layak Beli)
       const minLiqFilter = Number(userSettings.minLiq) || 2000;
       const minMcapFilter = Number(userSettings.minMcap) || 0;
       const minAgeHoursFilter = (Number(userSettings.minAgeMins) || 0) / 60;
+      const isBuyOnly = (x) => x.actionSignal === 'Beli' || x.actionSignal === 'Layak Beli';
       let bullish = [...filtered]
-        .filter(x => x.liq >= minLiqFilter && x.mcap >= minMcapFilter && x.ageHours >= minAgeHoursFilter)
+        .filter(x => isBuyOnly(x) && x.liq >= minLiqFilter && x.mcap >= minMcapFilter && x.ageHours >= minAgeHoursFilter)
         .sort((a, b) => b.bullScore - a.bullScore)
         .slice(0, 20);
-      if (bullish.length === 0 && filtered.length > 0) {
-        bullish = [...filtered].sort((a, b) => b.bullScore - a.bullScore).slice(0, 20);
+      if (bullish.length === 0) {
+        bullish = [...filtered]
+          .filter(isBuyOnly)
+          .sort((a, b) => b.bullScore - a.bullScore)
+          .slice(0, 20);
       }
       document.getElementById('countBullish').textContent = `${bullish.length} koin`;
       document.getElementById('gridBullish').innerHTML = bullish.length
         ? bullish.map(x => renderCoinRow(x, 'bullish')).join('')
-        : `<div class="p-6 text-center text-xs text-slate-400">Belum ada koin yang cocok di chain ini.</div>`;
+        : `<div class="p-6 text-center text-xs text-slate-400">Belum ada koin yang lolos konsensus Multi-AI (Beli / Layak Beli) pada batch ini — koin Tidak Yakin &amp; Jangan Beli otomatis disembunyikan.</div>`;
 
-      // Bagan 2: Top 20 Terbaru Kredibel
+      // Bagan 2: Koin Baru (Umur <= 1 Minggu / 168 jam), diurutkan dari yang terbaru hingga yang lama
       const newest = [...filtered]
-        .sort((a, b) => (b.cred - a.cred) || (a.ageHours - b.ageHours))
+        .filter(x => Number.isFinite(x.ageHours) && x.ageHours >= 0 && x.ageHours <= 168)
+        .sort((a, b) => (a.ageHours - b.ageHours) || (b.cred - a.cred))
         .slice(0, 20);
       document.getElementById('countNew').textContent = `${newest.length} koin`;
       document.getElementById('gridNewCredible').innerHTML = newest.length
         ? newest.map(x => renderCoinRow(x, 'new')).join('')
-        : `<div class="p-6 text-center text-xs text-slate-400">Belum ada koin terbaru di chain ini.</div>`;
+        : `<div class="p-6 text-center text-xs text-slate-400">Belum ada koin berumur &le; 1 minggu pada batch ini.</div>`;
 
       // Bagan 3A: Prediksi Turun / Koreksi
       const bearish = [...filtered]
@@ -1916,6 +1949,18 @@
       document.getElementById('gridScamRug').innerHTML = scamRug.length
         ? scamRug.map(x => renderCoinRow(x, 'scam')).join('')
         : `<div class="p-6 text-center text-xs text-slate-400">Tidak ada koin indikasi scam/rug pada batch ini.</div>`;
+
+      // Bagan 4 (Paling Bawah): Mengambang — Kumpulan banyak koin tanpa batas (mulai dari potensi chart akan naik, konsolidasi, dll.)
+      const floatingCoins = [...filtered]
+        .sort((a, b) => (b.bullScore - a.bullScore) || (b.m5 - a.m5) || (b.vol - a.vol));
+      const cntFloatEl = document.getElementById('countFloating');
+      const gridFloatEl = document.getElementById('gridFloating');
+      if (cntFloatEl && gridFloatEl) {
+        cntFloatEl.textContent = `${floatingCoins.length} koin`;
+        gridFloatEl.innerHTML = floatingCoins.length
+          ? floatingCoins.map(x => renderCoinRow(x, x.rugReasons.length > 0 ? 'scam' : (x.dropReasons.length > 0 ? 'bearish' : 'new'))).join('')
+          : `<div class="p-6 text-center text-xs text-slate-400">Belum ada koin mengambang pada batch ini.</div>`;
+      }
 
       // Record & evaluate separated Bullish vs Bearish live signal accuracy
       const now = Date.now();
@@ -2360,6 +2405,217 @@
       }
     }
 
+    // --- Unified Multi-AI Vendor Router (Uses User's Own API Key When Configured) ---
+    function getActiveMultiAiLabel() {
+      const prov = (userSettings && userSettings.aiProvider) || 'gemini-default';
+      const hasKey = Boolean(userSettings && userSettings.aiKey && userSettings.aiKey.trim().length > 4);
+      const map = {
+        'gemini-default': 'Gemini AI Free (Lokal · 0 Token)',
+        'pollinations-free': 'Pollinations AI (Gratis)',
+        'gemini-custom': 'Google Gemini (API Key Pribadi)',
+        'openai': 'OpenAI (API Key Pribadi)',
+        'anthropic': 'Anthropic Claude (API Key Pribadi)',
+        'groq': 'Groq AI (API Key Pribadi)',
+        'deepseek': 'DeepSeek (API Key Pribadi)',
+        'openrouter': 'OpenRouter (API Key Pribadi)',
+        'mistral': 'Mistral AI (API Key Pribadi)',
+        'together': 'Together AI (API Key Pribadi)',
+        'xai': 'xAI Grok (API Key Pribadi)',
+        'custom-openai': 'Custom AI Vendor (API Key Pribadi)'
+      };
+      if (prov !== 'gemini-default' && prov !== 'pollinations-free' && !hasKey) {
+        return 'Gemini AI Free (API Key belum diisi)';
+      }
+      return map[prov] || 'Gemini AI Free (Lokal · 0 Token)';
+    }
+
+    function isUsingExternalVendorAi() {
+      const prov = (userSettings && userSettings.aiProvider) || 'gemini-default';
+      if (prov === 'gemini-default') return false;
+      if (prov === 'pollinations-free') return true;
+      return Boolean(userSettings && userSettings.aiKey && userSettings.aiKey.trim().length > 4);
+    }
+
+    async function callUserVendorAi(prompt) {
+      const prov = (userSettings && userSettings.aiProvider) || 'gemini-default';
+      const key = (userSettings && userSettings.aiKey || '').trim();
+      const customModel = (userSettings && userSettings.aiModel || '').trim();
+      if (prov === 'pollinations-free') {
+        const res = await fetch('https://text.pollinations.ai/openai', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: customModel || 'openai', messages: [{ role: 'user', content: prompt }] })
+        });
+        const data = await res.json();
+        return data?.choices?.[0]?.message?.content || '';
+      }
+      if (!key) return '';
+      if (prov === 'gemini-custom') {
+        const model = customModel || 'gemini-2.5-flash';
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        });
+        const data = await res.json();
+        return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      }
+      if (prov === 'anthropic') {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': key,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true'
+          },
+          body: JSON.stringify({ model: customModel || 'claude-3-5-sonnet-latest', max_tokens: 320, messages: [{ role: 'user', content: prompt }] })
+        });
+        const data = await res.json();
+        return data?.content?.[0]?.text || '';
+      }
+      const endpointMap = {
+        openai: 'https://api.openai.com/v1/chat/completions',
+        groq: 'https://api.groq.com/openai/v1/chat/completions',
+        deepseek: 'https://api.deepseek.com/v1/chat/completions',
+        openrouter: 'https://openrouter.ai/api/v1/chat/completions',
+        mistral: 'https://api.mistral.ai/v1/chat/completions',
+        together: 'https://api.together.xyz/v1/chat/completions',
+        xai: 'https://api.x.ai/v1/chat/completions'
+      };
+      const defaultModelMap = {
+        openai: 'gpt-4o-mini',
+        groq: 'llama-3.3-70b-versatile',
+        deepseek: 'deepseek-chat',
+        openrouter: 'google/gemini-2.0-flash-001',
+        mistral: 'mistral-small-latest',
+        together: 'meta-llama/Llama-3.3-70B-Instruct-Turbo',
+        xai: 'grok-2-latest'
+      };
+      const url = (prov === 'custom-openai' && userSettings.aiBaseUrl)
+        ? userSettings.aiBaseUrl
+        : (endpointMap[prov] || endpointMap.openai);
+      const model = customModel || defaultModelMap[prov] || 'gpt-4o-mini';
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+        body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }] })
+      });
+      const data = await res.json();
+      return data?.choices?.[0]?.message?.content || '';
+    }
+
+    // --- Automatic 3-Tier Multi-AI Hierarchical Analysis for Every Meme Coin ---
+    function renderMultiAiHierarchy(t) {
+      const outEl = document.getElementById('aiDeepOutput');
+      if (!outEl || !t) return;
+      const b5 = Number(t.pair?.txns?.m5?.buys || 0);
+      const s5 = Number(t.pair?.txns?.m5?.sells || 0);
+      const tot5 = b5 + s5;
+      const br5 = tot5 > 0 ? Math.round((b5 / tot5) * 100) : t.buyRatio;
+      const rugEv = evaluateCorrectionVsRug({
+        buys5m: b5, sells5m: s5, buyRatio: t.buyRatio, m5: t.m5,
+        liq: t.liq, liqMcapRatio: t.liqMcapRatio, top10Pct: t.top10Pct
+      });
+
+      // Tier 1: Specialist Subordinates
+      const secIssues = [];
+      if (!t.mintRevoked) secIssues.push('Mint Authority aktif');
+      if (!t.freezeRevoked) secIssues.push('Freeze/Honeypot berisiko');
+      if (t.top10Pct !== null && t.top10Pct !== undefined && t.top10Pct > 40) secIssues.push(`Top 10 Holders padat (${t.top10Pct}%)`);
+      if (t.isWashTrade) secIssues.push(`Indikasi wash-trade (Vol/Liq ${Number(t.volLiqRatio || 0).toFixed(1)}x)`);
+      const t1OnChain = secIssues.length === 0
+        ? `Aman — Mint/Freeze bersih, LP ${t.lpLockedPct !== null && t.lpLockedPct !== undefined ? t.lpLockedPct + '%' : 'terpantau'}, Vol/Liq ${Number(t.volLiqRatio || 0).toFixed(1)}x.`
+        : `Temuan: ${secIssues.join(' · ')}.`;
+
+      const t1Tech = `Harga ${fmtUsd(t.priceUsd)} · 5m ${t.m5 >= 0 ? '+' : ''}${t.m5}% · 1j ${t.h1 >= 0 ? '+' : ''}${t.h1}% · Buyer 5m ${br5}% (${b5}B/${s5}S) · Liq ${fmtUsd(t.liq)} (${t.liqMcapRatio}% MCap).`;
+
+      const socialCnt = (t.websites?.length || 0) + (t.socials?.length || 0);
+      const t1Sent = t.hasOfficial
+        ? `Terverifikasi ${socialCnt} tautan resmi konkret · Umur pool ${formatCoinAge(t.ageHours)}${t.isPumpFun ? ' (Launchpad Pump.fun)' : ''}.`
+        : `Anonim (tanpa domain/akun resmi konkret) · Umur pool ${formatCoinAge(t.ageHours)}.`;
+
+      // Tier 2: Devil's Advocate & Risk Gatekeeper (Hard Veto)
+      const skepticPoints = [];
+      if (t.liq < 10000) skepticPoints.push(`likuiditas relatif tipis (${fmtUsd(t.liq)}) rawan slippage`);
+      if (!t.hasOfficial) skepticPoints.push('tidak ada akun resmi terverifikasi');
+      if (br5 < 50) skepticPoints.push(`tekanan jual 5m meningkat (${br5}% buy)`);
+      if (t.ageHours < 1) skepticPoints.push('umur pool < 1 jam (volatilitas ekstrem)');
+      if (t.isWashTrade) skepticPoints.push('rasio volume/likuiditas mencurigakan');
+      const t2Devil = skepticPoints.length > 0
+        ? `Faktor penggagalan: ${skepticPoints.join('; ')}.`
+        : 'Tidak ada kontradiksi mayor antar-divisi; tetap waspadai volatilitas cepat meme coin.';
+
+      const hardVeto = (!t.mintRevoked || !t.freezeRevoked || rugEv.status === 'RUG_DUMP' || t.isWashTrade || t.liq < 2000);
+      const t2Gatekeeper = hardVeto
+        ? `⛔ VETO KERAS AKTIF — ${secIssues[0] || rugEv.badge}. Sinyal beli diblokir otomatis.`
+        : `✅ LOLOS GATEKEEPER — Tidak ada veto rug/honeypot. Terapkan split entry 40%/60% & SL ketat 15–25%.`;
+
+      // Tier 3: Chief Prediction Strategist Verdict
+      let verdictLabel = 'Tidak Yakin / Pantau (Pullback Sehat)';
+      let verdictCls = 'bg-amber-50 text-amber-800 border-amber-300';
+      if (hardVeto || t.actionSignal === 'Jangan Beli') {
+        verdictLabel = 'Jangan Beli (Risiko Tinggi / Veto)';
+        verdictCls = 'bg-rose-50 text-rose-800 border-rose-300';
+      } else if ((t.actionSignal === 'Beli' || t.actionSignal === 'Layak Beli') && t.confPct >= 55) {
+        verdictLabel = 'Layak Entry Terukur';
+        verdictCls = 'bg-emerald-50 text-emerald-800 border-emerald-300';
+      }
+
+      const activeStrats = (userSettings.strategies || []).join(', ') || 'Scout-Confirmation (40%/60%)';
+      outEl.classList.remove('hidden');
+      outEl.innerHTML = `
+        <div class="space-y-2.5">
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-indigo-200/80">
+            <div class="font-extrabold text-indigo-900 text-xs">🧠 Analisis Multi-AI · ${getActiveMultiAiLabel()} (Profil · ${t.symbol})</div>
+            <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold border ${verdictCls}">${verdictLabel} · Keyakinan ${t.confPct}%</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-[11px]">
+            <div class="bg-white border border-slate-200 rounded-lg p-2">
+              <div class="font-bold text-slate-800">1A. AI On-Chain Auditor</div>
+              <div class="text-slate-600 mt-0.5">${t1OnChain}</div>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-lg p-2">
+              <div class="font-bold text-slate-800">1B. AI Market &amp; Teknikal</div>
+              <div class="text-slate-600 mt-0.5">${t1Tech}</div>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-lg p-2">
+              <div class="font-bold text-slate-800">1C. AI Sentimen &amp; Narasi</div>
+              <div class="text-slate-600 mt-0.5">${t1Sent}</div>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[11px]">
+            <div class="bg-amber-50/70 border border-amber-200 rounded-lg p-2">
+              <div class="font-bold text-amber-900">2A. AI Devil's Advocate (Skeptis)</div>
+              <div class="text-amber-800 mt-0.5">${t2Devil}</div>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-lg p-2">
+              <div class="font-bold text-slate-900">2B. AI Risk &amp; Gatekeeper (Veto)</div>
+              <div class="text-slate-700 mt-0.5">${t2Gatekeeper}</div>
+            </div>
+          </div>
+          <div id="multiAiVendorVerdict" class="bg-indigo-100/60 border border-indigo-200 rounded-lg p-2.5 text-[11px] text-indigo-950">
+            <strong>3. Chief Prediction Strategist (${getActiveMultiAiLabel()}):</strong> Keputusan <strong>${verdictLabel}</strong> (Arah: ${t.signalDir}, Kredibilitas ${t.cred}%). Strategi aktif: <em>${activeStrats}</em>.
+          </div>
+        </div>
+      `;
+
+      // If user configured their own personal AI vendor API Key, automatically enrich Chief Strategist via their vendor (0 owner token cost)
+      if (isUsingExternalVendorAi()) {
+        const vendorEl = document.getElementById('multiAiVendorVerdict');
+        const reqCa = t.ca;
+        if (vendorEl) {
+          vendorEl.innerHTML += `<div class="mt-1 text-[10px] text-indigo-700 italic">Menjalankan sintesis Multi-AI via ${getActiveMultiAiLabel()}...</div>`;
+        }
+        const maiPrompt = `Jalankan analisis Multi-AI 3 Tingkat untuk meme coin ${t.symbol} (${t.chainId}): [1A On-Chain] ${t1OnChain} [1B Teknikal] ${t1Tech} [1C Sentimen] ${t1Sent} [2A Skeptis] ${t2Devil} [2B Gatekeeper] ${t2Gatekeeper}. Strategi: ${activeStrats}. Berikan sintesis Chief Prediction Strategist tegas (Layak Entry Terukur / Pantau / Jangan Beli), keyakinan %, dan rencana SL/TP singkat dalam 3 kalimat Bahasa Indonesia.`;
+        callUserVendorAi(maiPrompt).then(reply => {
+          if (!reply || !currentToken || currentToken.ca !== reqCa) return;
+          const elNow = document.getElementById('multiAiVendorVerdict');
+          if (elNow) {
+            elNow.innerHTML = `<strong>3. Chief Prediction Strategist (${getActiveMultiAiLabel()}):</strong> <span class="whitespace-pre-line">${reply.replace(/</g, '&lt;')}</span>`;
+          }
+        }).catch(() => {});
+      }
+    }
+
     function renderAuditDetail(t) {
       document.getElementById('resTokenIcon').outerHTML = coinIconHtml(t.iconUrl, t.symbol, 'w-10 h-10').replace('<div ', '<div id="resTokenIcon" ');
       document.getElementById('resTokenName').textContent = `${t.symbol} (${t.name})`;
@@ -2544,7 +2800,7 @@
         pubLinks.push(`<a href="https://www.coingecko.com/en/search?query=${symEnc}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-emerald-800 font-medium">🦎 Cek CoinGecko</a>`);
       }
       pubGrid.innerHTML = pubLinks.length ? pubLinks.join('') : '<span class="text-slate-400">Semua sumber sinyal publik dinonaktifkan di Pengaturan.</span>';
-      document.getElementById('aiDeepOutput').classList.add('hidden');
+      renderMultiAiHierarchy(t);
       safeCreateIcons();
     }
 
@@ -2679,6 +2935,10 @@
     document.getElementById('popBearish').addEventListener('click', () => {
       toggleTrendingPopup(true);
       setActiveNav('navTrending', 'radar', 'secBearish');
+    });
+    document.getElementById('popFloating')?.addEventListener('click', () => {
+      toggleTrendingPopup(true);
+      setActiveNav('navTrending', 'radar', 'secFloating');
     });
     document.getElementById('popScamRug').addEventListener('click', () => {
       toggleTrendingPopup(true);
@@ -2983,8 +3243,8 @@
       const manualText = userSettings.manualStrategy ? ` | Aturan Manual: ${userSettings.manualStrategy}` : '';
 
       if (userSettings.aiProvider === 'gemini-default') {
-        const t = currentToken;
-        outEl.innerHTML = `<strong>Ringkasan AI Gemini Bawaan (${t.symbol}):</strong> Keputusan <strong>${t.actionSignal}</strong> (Arah ${t.signalDir}, Confidence ${t.confPct}%). Likuiditas ${fmtUsd(t.liq)} (${t.liqMcapRatio}% dari MCap), tekanan beli ${t.buyRatio}% vs jual ${t.sellRatio}%. Strategi aktif: <em>${activeStrats}${manualText}</em>. ${t.hasOfficial ? 'Memiliki tautan resmi terdaftar—verifikasi kecocokan CA di akun X aslinya sebelum masuk.' : 'Peringatan: koin anonim tanpa website/sosmed resmi, risiko rug tinggi.'}`;
+        renderMultiAiHierarchy(currentToken);
+        showToast('Analisis Multi-AI 3 Tingkat diperbarui!', 'success');
         return;
       }
 
@@ -3394,6 +3654,74 @@
       showToast(`🔄 ${pos.symbol}: Menit ${failedMin}m GAGAL — dikalibrasi ulang ke Menit ${nextMin}m!`, 'info');
     }
 
+    function buildPaperMultiAiMinuteReport(pos, minNum) {
+      const ev = evaluateCorrectionVsRug(pos);
+      const pct = pos.entryPrice > 0 ? ((pos.currentPrice - pos.entryPrice) / pos.entryPrice) * 100 : 0;
+      const m5 = Number(pos.m5 || 0);
+      const nextMin = Math.max(1, minNum + 1);
+      const nextPred = (pos.minutePredictions && pos.minutePredictions[nextMin]) || predictMinuteOnCurve(pos, nextMin, 0, pos.entryPrice);
+      const logCur = pos.minuteLogs && pos.minuteLogs[minNum];
+
+      // Tier 1: Subordinates
+      const liqInfo = (pos.entryLiq > 0 && pos.currentLiq > 0)
+        ? `${fmtUsd(pos.entryLiq)} → ${fmtUsd(pos.currentLiq)} (${ev.liqDropPct >= 0 ? '+' : ''}${ev.liqDropPct.toFixed(1)}%)`
+        : (pos.currentLiq > 0 ? fmtUsd(pos.currentLiq) : 'Stabil/Memantau');
+      const t1OnChain = ev.status === 'RUG_DUMP'
+        ? `🚨 Bahaya likuiditas/dump (${liqInfo}).`
+        : `Likuiditas ${liqInfo} · Status ${ev.status === 'HEALTHY' ? 'Sehat' : 'Koreksi'}.`;
+      const t1Tech = `PnL ${pct >= 0 ? '+' : ''}${pct.toFixed(2)}% · 5m ${m5 >= 0 ? '+' : ''}${m5.toFixed(1)}% · Buyer 5m ${ev.buyRatio5m}% (${ev.b5}B/${ev.s5}S)${logCur ? ` · Audit ${minNum}m: ${logCur.status}` : ''}.`;
+
+      // Tier 2: Devil's Advocate & Gatekeeper Veto
+      const skeptic = [];
+      if (ev.liqDropPct <= -10) skeptic.push(`likuiditas turun ${ev.liqDropPct.toFixed(1)}%`);
+      if (ev.buyRatio5m < 48) skeptic.push(`seller 5m dominan (${100 - ev.buyRatio5m}%)`);
+      if (pct < -5) skeptic.push(`posisi minus ${pct.toFixed(1)}%`);
+      if (logCur && logCur.status === 'GAGAL') skeptic.push(`prediksi menit ${minNum} meleset`);
+      const t2Devil = skeptic.length > 0 ? `Risiko: ${skeptic.join(', ')}.` : 'Belum ada anomali tajam antar indikator menit ini.';
+
+      const vetoExit = ev.status === 'RUG_DUMP' || (pct <= -20 && ev.buyRatio5m < 40);
+      const t2Gate = vetoExit
+        ? '⛔ VETO KELUAR SEKARANG — indikasi rug/dump atau kerusakan struktur.'
+        : (ev.status === 'CORRECTION' ? '⚠️ PANTAU KETAT — koreksi biasa, patuhi batas SL.' : '✅ LOLOS GATEKEEPER — struktur aman untuk ditahan.');
+
+      // Tier 3: Chief Prediction Strategist
+      let decision = 'TAHAN (HOLD)';
+      let badgeCls = 'bg-emerald-600 text-white';
+      let conf = 72;
+      if (vetoExit) {
+        decision = 'KELUAR SEKARANG (VETO)';
+        badgeCls = 'bg-rose-600 text-white';
+        conf = 88;
+      } else if (pct >= 25 && ev.buyRatio5m < 55) {
+        decision = 'TAKE PROFIT BERTAHAP (50%)';
+        badgeCls = 'bg-sky-600 text-white';
+        conf = 78;
+      } else if (ev.status === 'CORRECTION' || (logCur && logCur.status === 'GAGAL')) {
+        decision = 'PANTAU KETAT (WASPADA)';
+        badgeCls = 'bg-amber-500 text-white';
+        conf = 58;
+      } else {
+        conf = Math.min(92, Math.max(55, Math.round(55 + (ev.buyRatio5m - 50) * 0.6 + (pct > 0 ? 8 : 0))));
+      }
+
+      return {
+        minute: minNum,
+        vendorLabel: getActiveMultiAiLabel(),
+        vendorNote: '',
+        ts: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        decision,
+        badgeCls,
+        conf,
+        nextMin,
+        nextProjPct: Number((nextPred.projPct || 0).toFixed(2)),
+        nextPrice: nextPred.targetPrice || pos.currentPrice,
+        t1OnChain,
+        t1Tech,
+        t2Devil,
+        t2Gate
+      };
+    }
+
     function syncPaperWithLivePrices(priceMap, metaMap = null) {
       let changed = false;
       const remaining = [];
@@ -3450,6 +3778,29 @@
         }
         if (latestFailedMin !== null) {
           runComprehensiveAiReAudit(pos, latestFailedMin, meta);
+        }
+
+        // Always run 3-tier Multi-AI analysis every elapsed minute on active bought coins
+        if (!pos.multiAiReport || pos.lastMultiAiMin !== elapsedMin) {
+          const rep = buildPaperMultiAiMinuteReport(pos, elapsedMin);
+          pos.multiAiReport = rep;
+          pos.lastMultiAiMin = elapsedMin;
+          if (!Array.isArray(pos.multiAiHistory)) pos.multiAiHistory = [];
+          if (elapsedMin > 0) {
+            pos.multiAiHistory.unshift({ min: elapsedMin, decision: rep.decision, conf: rep.conf, ts: rep.ts });
+            pos.multiAiHistory = pos.multiAiHistory.slice(0, 12);
+          }
+          if (isUsingExternalVendorAi() && elapsedMin > 0) {
+            const pPrompt = `Analisis Multi-AI Menit ke-${elapsedMin} koin aktif ${pos.symbol} (${pos.chainId}): On-Chain: ${rep.t1OnChain} Teknikal: ${rep.t1Tech} Skeptis: ${rep.t2Devil} Gatekeeper: ${rep.t2Gate}. Berikan keputusan tegas 1-2 kalimat (TAHAN / PANTAU KETAT / TP BERTAHAP / KELUAR SEKARANG) dalam Bahasa Indonesia.`;
+            callUserVendorAi(pPrompt).then(reply => {
+              if (reply && pos.multiAiReport && pos.multiAiReport.minute === elapsedMin) {
+                pos.multiAiReport.vendorNote = reply.trim();
+                savePaper();
+                renderPaper();
+              }
+            }).catch(() => {});
+          }
+          changed = true;
         }
 
         // Also update 5m checkpoint summary badges
@@ -3607,6 +3958,26 @@
                   </div>
                 </div>`;
               })()}
+              ${(() => {
+                const ma = pos.multiAiReport || buildPaperMultiAiMinuteReport(pos, elapsedMin);
+                const histBadges = (pos.multiAiHistory || []).slice(0, 5).map(h =>
+                  `<span class="px-1.5 py-0.5 rounded bg-white border border-indigo-200 text-[9px] mono text-indigo-800">${h.min}m: ${h.decision} (${h.conf}%)</span>`
+                ).join('');
+                return `<div class="mt-2 p-2.5 rounded-xl bg-indigo-50/70 border border-indigo-200 text-[11px] space-y-1.5">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <span class="font-extrabold text-indigo-900 text-[11px]">🧠 Analisis Multi-AI · ${ma.vendorLabel || getActiveMultiAiLabel()} · Menit ke-${ma.minute} <span class="font-normal text-indigo-600 mono">(${ma.ts})</span></span>
+                    <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold ${ma.badgeCls}">${ma.decision} · Keyakinan ${ma.conf}%</span>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[10px]">
+                    <div class="bg-white/90 border border-indigo-100 rounded-lg p-1.5"><strong>1. Bawahan (On-Chain &amp; Teknikal):</strong> ${ma.t1OnChain} ${ma.t1Tech}</div>
+                    <div class="bg-white/90 border border-indigo-100 rounded-lg p-1.5"><strong>2. Audit Skeptis &amp; Gatekeeper:</strong> ${ma.t2Devil} ${ma.t2Gate}</div>
+                  </div>
+                  <div class="flex flex-wrap items-center justify-between gap-1.5 text-[10px] text-indigo-950">
+                    <span><strong>3. Chief Strategist (Target Menit ${ma.nextMin}):</strong> ${ma.nextProjPct >= 0 ? '+' : ''}${ma.nextProjPct}% (${fmtUsd(ma.nextPrice)})${ma.vendorNote ? ` · <em>${ma.vendorNote.replace(/</g, '&lt;')}</em>` : ''}</span>
+                    ${histBadges ? `<div class="flex flex-wrap gap-1">${histBadges}</div>` : ''}
+                  </div>
+                </div>`;
+              })()}
               ${reAuditHtml}
             </td>
           </tr>`;
@@ -3734,6 +4105,8 @@
           slPct: sl
         });
         initPredictionCheckpoints(paperState.open[0]);
+        paperState.open[0].multiAiReport = buildPaperMultiAiMinuteReport(paperState.open[0], 0);
+        paperState.open[0].lastMultiAiMin = 0;
         savePaper();
         renderPaper();
         e.target.reset();
