@@ -312,6 +312,27 @@
           </div>
         </div>
 
+        <!-- Cek Cepat: Koreksi Biasa vs Rug / Dump -->
+        <div id="quickRugCheckBox" class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-700">Cek Cepat: Koreksi Biasa vs Rug / Dump</span>
+            </div>
+            <span id="quickRugBadge" class="px-2.5 py-0.5 rounded-lg text-[11px] font-extrabold border bg-white text-slate-700 border-slate-200">Menunggu Koin</span>
+          </div>
+          <p id="quickRugReason" class="text-xs text-slate-600 leading-relaxed">Memeriksa rasio Buyer/Seller 5 menit, rasio likuiditas, dan konsentrasi Top Holders...</p>
+          <div class="flex flex-wrap items-center gap-2 pt-0.5">
+            <a id="quickRugDexLink" href="https://dexscreener.com/" target="_blank" rel="noopener noreferrer"
+              class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-[11px] font-semibold text-slate-800">
+              📊 Cek Likuiditas DEX Screener
+            </a>
+            <a id="quickRugBubbleLink" href="https://bubblemaps.io/" target="_blank" rel="noopener noreferrer"
+              class="px-2.5 py-1 rounded-lg bg-violet-50 border border-violet-200 hover:bg-violet-100 text-[11px] font-semibold text-violet-800">
+              🫧 Cek Top Holders Bubblemaps
+            </a>
+          </div>
+        </div>
+
         <!-- Live Real-Time Candlestick Chart -->
         <div id="liveChartWrap" class="hidden bg-slate-50 border border-slate-200/80 rounded-xl p-2.5 space-y-2">
           <div class="flex flex-wrap items-center justify-between gap-2 px-1">
@@ -958,6 +979,10 @@
             <button id="btnNewPaperSession" class="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold">
               Sesi Baru
             </button>
+            <label class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-[11px] font-bold cursor-pointer select-none" title="Otomatis jual posisi jika likuiditas anjlok >= 15% atau dump ekstrem tanpa menunggu pantulan">
+              <input id="chkAutoRugExit" type="checkbox" checked class="accent-rose-600 w-3.5 h-3.5" />
+              <span>Auto-Exit Rug/Dump</span>
+            </label>
             <button id="btnRefreshPaperPrices" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5">
               <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
               <span>Update Harga</span>
@@ -1461,6 +1486,55 @@
       const days = Math.floor(h / 24);
       if (days < 30) return `${days}h`;
       return `${Math.floor(days / 30)}bln`;
+    }
+
+    function evaluateCorrectionVsRug(info) {
+      const b5 = Number(info.buys5m || 0);
+      const s5 = Number(info.sells5m || 0);
+      const tot5 = b5 + s5;
+      const buyRatio5m = tot5 > 0 ? Math.round((b5 / tot5) * 100) : Math.round(Number(info.buyRatio ?? 50));
+      const m5 = Number(info.m5 || 0);
+      const entryLiq = Number(info.entryLiq || 0);
+      const currentLiq = Number(info.currentLiq || info.liq || 0);
+      const liqDropPct = (entryLiq > 0 && currentLiq > 0) ? ((currentLiq - entryLiq) / entryLiq) * 100 : 0;
+      const liqMcapRatio = Number(info.liqMcapRatio || 0);
+      const top10Pct = info.top10Pct !== undefined && info.top10Pct !== null ? Number(info.top10Pct) : null;
+
+      const rugFlags = [];
+      if (entryLiq > 0 && liqDropPct <= -15) rugFlags.push(`Likuiditas anjlok ${liqDropPct.toFixed(1)}% sejak entry`);
+      if (currentLiq > 0 && currentLiq < 2000) rugFlags.push(`Likuiditas sangat tipis (${fmtUsd(currentLiq)})`);
+      if (liqMcapRatio > 0 && liqMcapRatio < 3) rugFlags.push(`Rasio Liq/MCap kritis (${liqMcapRatio}%)`);
+      if (top10Pct !== null && top10Pct >= 50) rugFlags.push(`Top 10 Holders sangat padat (${top10Pct}%)`);
+      if (tot5 >= 6 && buyRatio5m <= 30 && m5 <= -8) rugFlags.push(`Tekanan jual 5m ekstrem (${buyRatio5m}% buy, 5m ${m5.toFixed(1)}%)`);
+
+      if (rugFlags.length > 0) {
+        return {
+          status: 'RUG_DUMP',
+          badge: '🚨 RUG / DUMP — KELUAR SEKARANG',
+          boxClass: 'bg-rose-50 border-rose-300',
+          badgeClass: 'bg-rose-600 text-white border-rose-700',
+          buyRatio5m, b5, s5, liqDropPct, currentLiq,
+          reason: `${rugFlags.join(' · ')}. Jangan tunggu pantulan — segera cek Bubblemaps & keluar!`
+        };
+      }
+      if (m5 < 0 || buyRatio5m < 50) {
+        return {
+          status: 'CORRECTION',
+          badge: '⚠️ KOREKSI BIASA — PANTAU KETAT',
+          boxClass: 'bg-amber-50/80 border-amber-200',
+          badgeClass: 'bg-amber-100 text-amber-800 border-amber-300',
+          buyRatio5m, b5, s5, liqDropPct, currentLiq,
+          reason: `Harga/tekanan 5m melemah (${buyRatio5m}% buy, 5m ${m5 >= 0 ? '+' : ''}${m5.toFixed(1)}%), namun likuiditas masih relatif stabil${entryLiq > 0 ? ` (${liqDropPct >= 0 ? '+' : ''}${liqDropPct.toFixed(1)}%)` : ''}. Pantau batas SL & cek Bubblemaps.`
+        };
+      }
+      return {
+        status: 'HEALTHY',
+        badge: '✅ STRUKTUR SEHAT',
+        boxClass: 'bg-emerald-50/70 border-emerald-200',
+        badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+        buyRatio5m, b5, s5, liqDropPct, currentLiq,
+        reason: `Buyer 5m dominan (${buyRatio5m}% buy, ${b5}B/${s5}S) dan likuiditas terjaga (${currentLiq > 0 ? fmtUsd(currentLiq) : 'stabil'}).`
+      };
     }
 
     function formatHoldTimer(boughtAtMs) {
@@ -2316,6 +2390,25 @@
 
       document.getElementById('bsSummary1h').innerHTML = `<span class="text-emerald-600">Buyer: ${t.buys} (${t.buyRatio}%)</span> · <span class="text-rose-600">Seller: ${t.sells} (${t.sellRatio}%)</span>`;
       document.getElementById('bsBarBuy').style.width = `${t.buyRatio}%`;
+      const qBox = document.getElementById('quickRugCheckBox');
+      const qBadge = document.getElementById('quickRugBadge');
+      const qReason = document.getElementById('quickRugReason');
+      if (qBox && qBadge && qReason) {
+        const b5 = Number(t.pair?.txns?.m5?.buys || 0);
+        const s5 = Number(t.pair?.txns?.m5?.sells || 0);
+        const ev = evaluateCorrectionVsRug({
+          buys5m: b5, sells5m: s5, buyRatio: t.buyRatio, m5: t.m5,
+          liq: t.liq, liqMcapRatio: t.liqMcapRatio, top10Pct: t.top10Pct
+        });
+        qBox.className = `border rounded-xl p-3.5 space-y-2 ${ev.boxClass}`;
+        qBadge.className = `px-2.5 py-0.5 rounded-lg text-[11px] font-extrabold border ${ev.badgeClass}`;
+        qBadge.textContent = ev.badge;
+        qReason.textContent = ev.reason;
+        const safeCaQ = encodeURIComponent(t.ca);
+        const bmQ = { solana: 'sol', ethereum: 'eth', bsc: 'bsc', base: 'base', arbitrum: 'arbi', polygon: 'poly' };
+        document.getElementById('quickRugDexLink').href = `https://dexscreener.com/${t.chainId}/${safeCaQ}`;
+        document.getElementById('quickRugBubbleLink').href = `https://app.bubblemaps.io/${bmQ[t.chainId] || 'sol'}/token/${safeCaQ}`;
+      }
       const txns = (t.pair && t.pair.txns) || {};
       const tfLabels = [['m5', '5 Menit'], ['h1', '1 Jam'], ['h6', '6 Jam'], ['h24', '24 Jam']];
       document.getElementById('bsBreakdownGrid').innerHTML = tfLabels.map(([k, lbl]) => {
@@ -3330,6 +3423,13 @@
         if (meta) {
           pos.m5 = meta.m5;
           pos.buyRatio = meta.buyRatio;
+          if (meta.buys5m !== undefined) pos.buys5m = meta.buys5m;
+          if (meta.sells5m !== undefined) pos.sells5m = meta.sells5m;
+          if (meta.liq > 0) {
+            if (!pos.entryLiq || pos.entryLiq <= 0) pos.entryLiq = meta.liq;
+            pos.currentLiq = meta.liq;
+          }
+          if (meta.liqMcapRatio !== undefined) pos.liqMcapRatio = meta.liqMcapRatio;
           if (meta.pairCreatedAt) pos.pairCreatedAt = meta.pairCreatedAt;
         }
 
@@ -3378,23 +3478,29 @@
         }
 
         const pct = pos.entryPrice > 0 ? ((pos.currentPrice - pos.entryPrice) / pos.entryPrice) * 100 : 0;
+        const rugEval = evaluateCorrectionVsRug(pos);
+        const autoRugEnabled = document.getElementById('chkAutoRugExit')?.checked;
+        const hitRugExit = Boolean(autoRugEnabled && rugEval.status === 'RUG_DUMP');
         const hitTp = pos.tpPct > 0 && pct >= pos.tpPct;
         const hitSl = pos.slPct > 0 && pct <= -pos.slPct;
-        if (hitTp || hitSl) {
+        if (hitTp || hitSl || hitRugExit) {
           const pnlUsd = pos.amountUsd * (pct / 100);
           paperState.cashUsd += Math.max(0, pos.amountUsd + pnlUsd);
           paperState.realizedUsd += pnlUsd;
+          const exitReason = hitRugExit
+            ? '🚨 Auto-Exit Rug/Dump (Tanpa Tunggu Pantulan)'
+            : (hitTp ? `Auto TP (+${pos.tpPct}%)` : `Auto SL (-${pos.slPct}%)`);
           paperState.closed.unshift({
             time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
             ca: pos.ca,
             symbol: pos.symbol,
             iconUrl: pos.iconUrl || '',
             amountUsd: pos.amountUsd,
-            reason: hitTp ? `Auto TP (+${pos.tpPct}%)` : `Auto SL (-${pos.slPct}%)`,
+            reason: exitReason,
             pnlUsd
           });
           changed = true;
-          showToast(`Paper ${pos.symbol} tertutup otomatis (${hitTp ? 'TP' : 'SL'})!`, hitTp ? 'success' : 'error');
+          showToast(hitRugExit ? `🚨 ${pos.symbol} KELUAR DARURAT: Indikasi Rug/Dump terdeteksi!` : `Paper ${pos.symbol} tertutup otomatis (${hitTp ? 'TP' : 'SL'})!`, hitTp ? 'success' : 'error');
         } else {
           remaining.push(pos);
         }
@@ -3492,6 +3598,26 @@
                 <span class="text-[10px] font-bold text-slate-600">Audit Per Menit:</span>
                 ${minBadgesHtml}
               </div>
+              ${(() => {
+                const ev = evaluateCorrectionVsRug(pos);
+                const bmMap = { solana: 'sol', ethereum: 'eth', bsc: 'bsc', base: 'base', arbitrum: 'arbi', polygon: 'poly' };
+                const sCa = encodeURIComponent(pos.ca || '');
+                const liqText = pos.entryLiq > 0 && pos.currentLiq > 0
+                  ? `${fmtUsd(pos.entryLiq)} &rarr; ${fmtUsd(pos.currentLiq)} (${ev.liqDropPct >= 0 ? '+' : ''}${ev.liqDropPct.toFixed(1)}%)`
+                  : (pos.currentLiq > 0 ? fmtUsd(pos.currentLiq) : 'Memantau...');
+                return `<div class="mt-2 p-2.5 rounded-xl border ${ev.boxClass} text-[11px] space-y-1.5">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold border ${ev.badgeClass}">${ev.badge}</span>
+                    <span class="mono text-[10px] text-slate-700">5m: <strong>${ev.b5}B / ${ev.s5}S (${ev.buyRatio5m}%)</strong> · Liq: <strong>${liqText}</strong></span>
+                  </div>
+                  <div class="text-slate-700">${ev.reason}</div>
+                  <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+                    <a href="https://dexscreener.com/${pos.chainId}/${sCa}" target="_blank" rel="noopener noreferrer" class="px-2 py-1 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-[10px] font-semibold text-slate-800">📊 Cek Likuiditas DEX Screener</a>
+                    <a href="https://app.bubblemaps.io/${bmMap[pos.chainId] || 'sol'}/token/${sCa}" target="_blank" rel="noopener noreferrer" class="px-2 py-1 rounded-lg bg-violet-50 border border-violet-200 hover:bg-violet-100 text-[10px] font-semibold text-violet-800">🫧 Cek Top Holders Bubblemaps</a>
+                    ${ev.status === 'RUG_DUMP' ? `<button type="button" data-paper-close="${pos.id}" class="btn-paper-close px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-extrabold">🚨 Keluar Sekarang (Jual Darurat)</button>` : ''}
+                  </div>
+                </div>`;
+              })()}
               ${reAuditHtml}
             </td>
           </tr>`;
@@ -3553,6 +3679,8 @@
                 sellVal5m: sc.sellVal5m,
                 netFlow5m: sc.netFlow5m,
                 vol5m: sc.vol5m,
+                liq: sc.liq,
+                liqMcapRatio: sc.liqMcapRatio,
                 pairCreatedAt: pair.pairCreatedAt || null
               });
             }
@@ -3608,6 +3736,10 @@
           m5: Number(pair.priceChange?.m5 || 0),
           buyRatio: brInit,
           boughtAt: Date.now(),
+          entryLiq: Number(pair.liquidity?.usd || 0),
+          currentLiq: Number(pair.liquidity?.usd || 0),
+          buys5m: Number(pair.txns?.m5?.buys || 0),
+          sells5m: Number(pair.txns?.m5?.sells || 0),
           pairCreatedAt: pair.pairCreatedAt || null,
           tpPct: tp,
           slPct: sl
