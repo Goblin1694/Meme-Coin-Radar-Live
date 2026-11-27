@@ -153,7 +153,16 @@
             </div>
             <p class="text-xs text-slate-500 mt-0.5">Koin dengan momentum beli &amp; volume tertinggi secara live.</p>
           </div>
-          <span id="countBullish" class="text-xs font-semibold mono text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">0 koin</span>
+          <div class="flex flex-wrap items-center gap-2">
+            <label class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-emerald-200 text-[11px] font-bold text-emerald-800 cursor-pointer select-none" title="Kirim notifikasi live ke Android & iOS saat ada koin berumur < 10 menit masuk Naik (20)">
+              <input id="chkNotifNewBullish" type="checkbox" checked class="accent-emerald-600 w-3.5 h-3.5" />
+              <span>🔔 Notif HP Koin &lt;10m</span>
+            </label>
+            <button id="btnEnableNewBullishNotif" type="button" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition">
+              Izinkan Notif HP
+            </button>
+            <span id="countBullish" class="text-xs font-semibold mono text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">0 koin</span>
+          </div>
         </div>
 
         <div id="gridBullish" class="divide-y divide-slate-100">
@@ -1916,6 +1925,7 @@
           .slice(0, 20);
       }
       document.getElementById('countBullish').textContent = `${bullish.length} koin`;
+      if (typeof checkNewBullishUnder10mAlert === 'function') checkNewBullishUnder10mAlert(bullish);
       document.getElementById('gridBullish').innerHTML = bullish.length
         ? bullish.map(x => renderCoinRow(x, 'bullish')).join('')
         : `<div class="p-6 text-center text-xs text-slate-400">Belum ada koin yang lolos konsensus Multi-AI (Beli / Layak Beli) pada batch ini — koin Tidak Yakin &amp; Jangan Beli otomatis disembunyikan.</div>`;
@@ -5019,6 +5029,92 @@
 
     // Trigger initial onboarding tour for first-time visitors on Trending Radar
     setTimeout(() => { startProductTour('radar', false); }, 700);
+
+    // --- Real-Time Browser Notification (Android & iOS) for <10m Coins Entering Naik (20) ---
+    const NOTIF_NEW_BULL_KEY = 'meme_radar_notif_new_bull_v1';
+    const notifiedNewBullishCas = new Set();
+
+    function playAlertBeep() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.16);
+      } catch (e) {}
+      try { if (navigator.vibrate) navigator.vibrate([160, 70, 160]); } catch (e) {}
+    }
+
+    function checkNewBullishUnder10mAlert(bullishList) {
+      const enabled = document.getElementById('chkNotifNewBullish')?.checked !== false;
+      if (!enabled || !Array.isArray(bullishList)) return 0;
+      let triggered = 0;
+      for (const x of bullishList) {
+        if (!x || !x.ca) continue;
+        const ageMins = Number(x.ageHours) * 60;
+        if (Number.isFinite(ageMins) && ageMins >= 0 && ageMins < 10 && !notifiedNewBullishCas.has(x.ca)) {
+          notifiedNewBullishCas.add(x.ca);
+          triggered++;
+          const title = `🚀 Koin Baru <10m Masuk Naik (20): ${x.symbol}`;
+          const body = `Umur ${formatCoinAge(x.ageHours)} · ${x.chainId.toUpperCase()} · Harga ${fmtUsd(x.priceUsd)} · Liq ${fmtUsd(x.liq)} · ${x.actionSignal} (${x.confPct}%)`;
+          if (typeof sendMobileNotification === 'function') {
+            sendMobileNotification(title, body);
+          }
+          playAlertBeep();
+          showToast(`${title} (${formatCoinAge(x.ageHours)})`, 'success');
+        }
+      }
+      return triggered;
+    }
+
+    (function initNewBullishNotifControls() {
+      const chk = document.getElementById('chkNotifNewBullish');
+      const btn = document.getElementById('btnEnableNewBullishNotif');
+      try {
+        const saved = localStorage.getItem(NOTIF_NEW_BULL_KEY);
+        if (chk && saved !== null) chk.checked = saved === '1';
+      } catch (e) {}
+      if (chk) {
+        chk.addEventListener('change', () => {
+          try { localStorage.setItem(NOTIF_NEW_BULL_KEY, chk.checked ? '1' : '0'); } catch (e) {}
+          showToast(chk.checked ? 'Notif HP koin <10m di Naik (20) AKTIF!' : 'Notif HP koin <10m dimatikan.', 'info');
+        });
+      }
+      if (btn) {
+        const syncBtnLabel = () => {
+          if (typeof Notification === 'undefined') {
+            btn.textContent = 'Notif In-App Aktif';
+            return;
+          }
+          if (Notification.permission === 'granted') {
+            btn.textContent = '✓ Notif HP Aktif';
+            btn.className = 'px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300 text-[11px] font-bold';
+          }
+        };
+        syncBtnLabel();
+        btn.addEventListener('click', async () => {
+          if (typeof Notification === 'undefined') {
+            showToast('Browser ini belum mendukung Push Notification; di iOS tambahkan situs ke Home Screen (Safari).', 'info');
+            return;
+          }
+          const perm = await Notification.requestPermission();
+          syncBtnLabel();
+          if (perm === 'granted') {
+            sendMobileNotification('✅ Notifikasi Meme Coin Radar Aktif', 'Anda akan menerima alert live saat koin <10 menit masuk Naik (20).');
+            showToast('Izin notifikasi HP aktif! Alert real-time siap dikirim.', 'success');
+          } else {
+            showToast('Izin notifikasi ditolak di pengaturan browser.', 'error');
+          }
+        });
+      }
+    })();
   </script>
 </body>
 </html>
